@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Boxes,
   Lock,
   LogIn,
+  QrCode,
   ShieldAlert,
   ShieldCheck,
   User,
@@ -162,6 +163,20 @@ export const Login: React.FC = () => {
               Masuk
             </Button>
           </form>
+
+          {/* Akses Cepat Scan QR Code Tanpa Login */}
+          <div className="pt-4 border-t border-slate-100 space-y-2 text-center">
+            <p className="text-[11px] text-slate-500 font-medium">
+              Guru, Pegawai, atau Tamu ingin memindai barcode fisik barang?
+            </p>
+            <Link
+              to="/scan"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold text-xs transition-colors shadow-2xs"
+            >
+              <QrCode className="w-4 h-4 text-emerald-700 shrink-0" />
+              <span>Scan QR Code / Pinjam Barang (Tanpa Login)</span>
+            </Link>
+          </div>
         </div>
 
         {/* Security Disclaimers */}
