@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
+  ArrowDownToLine,
   CheckCircle2,
   FileCheck2,
   PackageCheck,
@@ -24,7 +25,7 @@ export const ReturnVerification: React.FC = () => {
   const queryClient = useQueryClient();
   const { currentUser, canReceiveReturns } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'requested' | 'completed'>('requested');
+  const [activeTab, setActiveTab] = useState<'requested' | 'active' | 'completed'>('requested');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Selected loan for verification confirmation modal
@@ -74,12 +75,19 @@ export const ReturnVerification: React.FC = () => {
     );
   }
 
-  // Filter loans by tab (Requested = RETURN_REQUESTED or legacy RETURN_RECEIVED; Completed = COMPLETED)
+  // Filter loans by tab:
+  // - requested: Diajukan oleh Guru via scan/app (RETURN_REQUESTED atau RETURN_RECEIVED)
+  // - active: Masih dipinjam aktif (Bisa dikembalikan langsung di tempat oleh Admin jika guru lupa scan HP)
+  // - completed: Selesai / Arsip
   const filteredLoans = loans?.filter((l) => {
-    const matchesTab =
-      activeTab === 'requested'
-        ? l.status === 'RETURN_REQUESTED' || l.status === 'RETURN_RECEIVED'
-        : l.status === 'COMPLETED';
+    let matchesTab = false;
+    if (activeTab === 'requested') {
+      matchesTab = l.status === 'RETURN_REQUESTED' || l.status === 'RETURN_RECEIVED';
+    } else if (activeTab === 'active') {
+      matchesTab = l.status === 'ACTIVE' || l.status === 'READY_FOR_HANDOVER';
+    } else {
+      matchesTab = l.status === 'COMPLETED';
+    }
 
     const matchesSearch =
       l.loanNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -92,6 +100,8 @@ export const ReturnVerification: React.FC = () => {
 
   const requestedCount =
     loans?.filter((l) => l.status === 'RETURN_REQUESTED' || l.status === 'RETURN_RECEIVED').length || 0;
+  const activeCount =
+    loans?.filter((l) => l.status === 'ACTIVE' || l.status === 'READY_FOR_HANDOVER').length || 0;
   const completedCount = loans?.filter((l) => l.status === 'COMPLETED').length || 0;
 
   return (
@@ -149,17 +159,17 @@ export const ReturnVerification: React.FC = () => {
       {/* Tabs & Search */}
       <Card>
         <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-semibold">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-semibold">
             <button
               type="button"
               onClick={() => setActiveTab('requested')}
               className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
                 activeTab === 'requested'
-                  ? 'bg-white text-blue-900 shadow-xs'
+                  ? 'bg-white text-emerald-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>1. Menunggu Verifikasi</span>
+              <span>1. Diajukan Guru</span>
               {requestedCount > 0 && (
                 <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px]">
                   {requestedCount}
@@ -169,14 +179,31 @@ export const ReturnVerification: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setActiveTab('completed')}
+              onClick={() => setActiveTab('active')}
               className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-                activeTab === 'completed'
+                activeTab === 'active'
                   ? 'bg-white text-blue-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>2. Selesai (Arsip)</span>
+              <span>2. Sedang Dipinjam (Kembalikan di Tempat)</span>
+              {activeCount > 0 && (
+                <span className="px-1.5 py-0.2 bg-blue-600 text-white rounded-full text-[10px]">
+                  {activeCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('completed')}
+              className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
+                activeTab === 'completed'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>3. Selesai (Arsip)</span>
               {completedCount > 0 && (
                 <span className="px-1.5 py-0.2 bg-slate-400 text-white rounded-full text-[10px]">
                   {completedCount}
@@ -208,11 +235,15 @@ export const ReturnVerification: React.FC = () => {
               title={
                 activeTab === 'requested'
                   ? 'Tidak Ada Pengembalian yang Menunggu Verifikasi'
+                  : activeTab === 'active'
+                  ? 'Tidak Ada Barang yang Sedang Dipinjam'
                   : 'Tidak Ada Riwayat Pengembalian Selesai'
               }
               description={
                 activeTab === 'requested'
-                  ? 'Seluruh pengembalian barang inventaris telah diverifikasi dan diselesaikan.'
+                  ? 'Belum ada guru yang mengajukan pengembalian via HP.'
+                  : activeTab === 'active'
+                  ? 'Semua barang inventaris saat ini berada di tempat / ruangan masing-masing.'
                   : 'Belum ada transaksi peminjaman yang diselesaikan pada periode ini.'
               }
             />
@@ -295,6 +326,20 @@ export const ReturnVerification: React.FC = () => {
                             </Button>
                           )}
 
+                          {(loan.status === 'ACTIVE' || loan.status === 'READY_FOR_HANDOVER') && (
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setSelectedLoanForVerification(loan);
+                                setVerificationNotes('Pengembalian fisik langsung di tempat oleh Admin Sarpras');
+                              }}
+                              leftIcon={<ArrowDownToLine className="w-3.5 h-3.5" />}
+                              className="bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow-xs"
+                            >
+                              Kembalikan di Tempat
+                            </Button>
+                          )}
+
                           {loan.status === 'COMPLETED' && (
                             <span className="text-[11px] text-emerald-700 font-semibold flex items-center justify-end gap-1">
                               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -318,8 +363,16 @@ export const ReturnVerification: React.FC = () => {
         onClose={() => {
           if (!verifyMutation.isPending) setSelectedLoanForVerification(null);
         }}
-        title="Konfirmasi Verifikasi Penerimaan Barang"
-        description="Periksa kesesuaian fisik barang, kode aset, dan peminjaman sebelum menyelesaikan pengembalian."
+        title={
+          selectedLoanForVerification?.status === 'ACTIVE'
+            ? 'Konfirmasi Pengembalian Langsung di Tempat'
+            : 'Konfirmasi Verifikasi Penerimaan Barang'
+        }
+        description={
+          selectedLoanForVerification?.status === 'ACTIVE'
+            ? 'Gunakan opsi ini jika guru langsung menyerahkan barang fisik ke Admin tanpa memindai QR via HP.'
+            : 'Periksa kesesuaian fisik barang, kode aset, dan kelengkapan sebelum menyelesaikan pengembalian.'
+        }
         maxWidth="md"
       >
         {selectedLoanForVerification && (
