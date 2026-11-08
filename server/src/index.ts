@@ -66,8 +66,22 @@ app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/audit-logs', auditLogsRouter);
 app.use('/api/v1/backup', backupRouter);
 
-// 4. Alias Kompatibilitas untuk Kontrak Frontend (src/services/api.ts)
-// Memastikan frontend yang memanggil path tanpa prefix /api/v1 tetap terlayani secara transparan
+// 4. Alias Kompatibilitas untuk Kontrak Frontend (src/services/api.ts) & Vercel rewrites
+app.use('/v1/health', healthRouter);
+app.use('/v1/auth', authRouter);
+app.use('/v1/users', usersRouter);
+app.use('/v1/assets', assetsRouter);
+app.use('/v1/loans', loansRouter);
+app.use('/v1/locations', locationsRouter);
+app.use('/v1/categories', categoriesRouter);
+app.use('/v1/funding-sources', fundingSourcesRouter);
+app.use('/v1/school-settings', schoolSettingsRouter);
+app.use('/v1/realtime', realtimeRouter);
+app.use('/v1/returns', returnsRouter);
+app.use('/v1/dashboard', dashboardRouter);
+app.use('/v1/audit-logs', auditLogsRouter);
+app.use('/v1/backup', backupRouter);
+
 app.use('/health', healthRouter);
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
@@ -116,3 +130,5 @@ if (process.argv[1]?.includes('index') && process.env.NODE_ENV !== 'test') {
     console.log(`=====================================================`);
   });
 }
+
+export default app;

@@ -71,3 +71,4 @@ main().catch((err) => {
   console.error('Error deploy ke Supabase:', err);
   process.exit(1);
 });
+
