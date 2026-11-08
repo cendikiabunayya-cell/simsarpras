@@ -25,7 +25,7 @@ if (fs.existsSync(envInServer)) {
 var config = {
   port: parseInt(process.env.PORT || "10000", 10),
   nodeEnv: process.env.NODE_ENV || "development",
-  databaseUrl: process.env.DATABASE_URL || "",
+  databaseUrl: process.env.DATABASE_URL || "postgresql://postgres.fmounzjzgnfchcmpmnfg:%40Bunayya123456789@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres",
   jwtSecret: process.env.JWT_SECRET || "dev_secret_key_simsarpras_2026",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   corsAllowedOrigins: (process.env.CORS_ALLOWED_ORIGINS || "http://localhost:5173,http://192.168.100.45:5173").split(",").map((s) => s.trim()),
