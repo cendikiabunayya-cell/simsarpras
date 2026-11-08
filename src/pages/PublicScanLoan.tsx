@@ -821,23 +821,13 @@ export const PublicScanLoan: React.FC = () => {
               <input
                 id="borrower-name-input"
                 type="text"
-                list="borrower-datalist"
+                autoComplete="off"
                 value={borrowerName}
                 onChange={(e) => setBorrowerName(e.target.value)}
-                placeholder="Ketik nama lengkap peminjam (contoh: Ibu Sarah, S.Pd)..."
+                placeholder="Ketik nama lengkap peminjam..."
                 className="w-full px-2.5 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
                 required
               />
-              <datalist id="borrower-datalist">
-                {allUsers.map((u) => (
-                  <option key={u.id} value={u.fullName}>
-                    {u.fullName} (NIP: {u.employeeNumber}) — {u.department || u.role}
-                  </option>
-                ))}
-              </datalist>
-              <p className="text-[10px] text-slate-400 mt-0.5">
-                Ketik nama Anda secara bebas atau pilih dari saran nama yang muncul.
-              </p>
             </div>
 
             {/* KEPERLUAN DENGAN 1-TAP CHIPS */}

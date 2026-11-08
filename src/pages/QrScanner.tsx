@@ -748,20 +748,13 @@ export const QrScanner: React.FC = () => {
               <input
                 id="borrower-name-input"
                 type="text"
-                list="borrower-datalist"
+                autoComplete="off"
                 value={borrowerName}
                 onChange={(e) => setBorrowerName(e.target.value)}
-                placeholder="Ketik nama lengkap peminjam (contoh: Ibu Sarah, S.Pd)..."
+                placeholder="Ketik nama lengkap peminjam..."
                 className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
                 required
               />
-              <datalist id="borrower-datalist">
-                {allUsers.map((u) => (
-                  <option key={u.id} value={u.fullName}>
-                    {u.fullName} (NIP: {u.employeeNumber}) — {u.department || u.role}
-                  </option>
-                ))}
-              </datalist>
             </div>
 
             {/* Purpose with 1-Tap Chips */}

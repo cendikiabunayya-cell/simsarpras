@@ -1673,20 +1673,13 @@ export const Inventory: React.FC = () => {
               </div>
               <input
                 type="text"
-                list="inv-borrower-datalist"
+                autoComplete="off"
                 value={loanBorrowerName}
                 onChange={(e) => setLoanBorrowerName(e.target.value)}
                 placeholder="Ketik nama lengkap peminjam..."
                 className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
                 required
               />
-              <datalist id="inv-borrower-datalist">
-                {allUsers.map((u) => (
-                  <option key={u.id} value={u.fullName}>
-                    {u.fullName} (NIP: {u.employeeNumber}) — {u.department || u.role}
-                  </option>
-                ))}
-              </datalist>
 
               {/* Rekomendasi Cepat */}
               <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px]">
