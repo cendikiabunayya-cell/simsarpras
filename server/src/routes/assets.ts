@@ -163,15 +163,48 @@ async function lookupAsset(rawIdentifier: string, res: Response) {
     const row = result.rows[0];
     const formatted = formatPublicAssetResponse(row);
 
+    // Ambil transaksi peminjaman aktif jika barang sedang dipinjam / reservasi
+    let activeLoan: any = null;
+    const loanQuery = `
+      SELECT id, loan_number, asset_id, borrower_id, borrower_name, borrower_employee_number,
+             borrower_role, status, loan_mode_snapshot, purpose, expected_return_at, requested_at
+      FROM loans
+      WHERE asset_id = $1 AND status IN ('ACTIVE', 'READY_FOR_HANDOVER', 'PENDING_APPROVAL', 'RETURN_REQUESTED')
+      ORDER BY requested_at DESC
+      LIMIT 1
+    `;
+    const loanRes = await pool.query(loanQuery, [row.id]);
+    if (loanRes.rows.length > 0) {
+      const l = loanRes.rows[0];
+      activeLoan = {
+        id: l.id,
+        loanNumber: l.loan_number,
+        assetId: l.asset_id,
+        borrowerId: l.borrower_id || null,
+        borrowerName: l.borrower_name,
+        borrowerEmployeeNumber: l.borrower_employee_number || '-',
+        borrowerRole: l.borrower_role || 'GURU_PEGAWAI',
+        status: l.status,
+        loanModeSnapshot: l.loan_mode_snapshot,
+        purpose: l.purpose,
+        expectedReturnAt: l.expected_return_at,
+        requestedAt: l.requested_at,
+      };
+    }
+
     if (formatted.isDecommissioned) {
       return res.status(200).json({
         ...formatted,
+        activeLoan,
         notice: 'BARANG_DINONAKTIFKAN',
         message: 'Barang ini telah dinonaktifkan atau dihapus secara logis dari inventaris aktif.',
       });
     }
 
-    return res.status(200).json(formatted);
+    return res.status(200).json({
+      ...formatted,
+      activeLoan,
+    });
   } catch (error: any) {
     // Log kesalahan sistem tanpa mengekspos detail SQL/kredensial ke pengguna
     console.error('[Assets Lookup Error]:', error?.message || error);

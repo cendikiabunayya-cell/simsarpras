@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { pool } from '../db.js';
-import { requireAuth, requireRole } from '../middleware/auth.js';
+import { requireAuth, requireRole, optionalAuth } from '../middleware/auth.js';
 import { sseManager } from '../realtime/sseManager.js';
 import { formatLoanResponse } from './loans.js';
 
@@ -8,9 +8,9 @@ export const returnsRouter = Router();
 
 /**
  * 1. POST /api/v1/returns (dan /returns)
- * Guru mengajukan pengembalian barang via riwayat peminjaman atau scan QR
+ * Guru mengajukan pengembalian barang via riwayat peminjaman atau scan QR (Mendukung Login maupun Tanpa Login)
  */
-returnsRouter.post('/', requireAuth, async (req: Request, res: Response) => {
+returnsRouter.post('/', optionalAuth, async (req: Request, res: Response) => {
   const loanId = req.body?.loanId || req.body?.loan_id;
   const notes = req.body?.notes;
 
@@ -48,10 +48,10 @@ returnsRouter.post('/', requireAuth, async (req: Request, res: Response) => {
 
     const currentLoan = loanRes.rows[0];
 
-    // Validasi kepemilikan pinjaman: Guru hanya boleh mengembalikan barang yang dipinjam sendiri
+    // Validasi kepemilikan pinjaman: Guru login hanya boleh mengembalikan barang sendiri (Admin dan pengembalian fisik bebas)
     const userRole = (req as any).user?.role;
     const userId = (req as any).user?.id;
-    if (userRole !== 'ADMIN_SARPRAS' && currentLoan.borrower_id && currentLoan.borrower_id !== userId) {
+    if (userId && userRole !== 'ADMIN_SARPRAS' && currentLoan.borrower_id && currentLoan.borrower_id !== userId) {
       await client.query('ROLLBACK');
       return res.status(403).json({
         error: 'FORBIDDEN',

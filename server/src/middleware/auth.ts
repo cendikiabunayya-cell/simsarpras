@@ -54,6 +54,26 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
+ * Middleware autentikasi opsional: mengekstrak identitas pengguna jika token disertakan,
+ * namun tetap mengizinkan request tamu/publik jika token tidak ada.
+ */
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7).trim();
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, config.jwtSecret) as AuthenticatedUser;
+        req.user = decoded;
+      } catch {
+        // Abaikan token yang kedaluwarsa/tidak valid untuk akses publik
+      }
+    }
+  }
+  next();
+}
+
+/**
  * Middleware untuk membatasi akses berdasarkan peran pengguna (Role-Based Access Control)
  * Contoh: requireRole('ADMIN_SARPRAS')
  */

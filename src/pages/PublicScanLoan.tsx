@@ -131,24 +131,30 @@ export const PublicScanLoan: React.FC = () => {
       setScannedAsset(asset);
       setShowOtherScanner(false);
 
-      const safeLoansList: LoanRequest[] = Array.isArray(allLoans)
-        ? allLoans
-        : Array.isArray((allLoans as any)?.data)
-        ? (allLoans as any).data
-        : [];
-
-      if (safeLoansList.length > 0) {
-        const foundLoan = safeLoansList.find(
-          (l) =>
-            l.unit?.id === asset.id &&
-            (l.status === 'ACTIVE' ||
-              l.status === 'READY_FOR_HANDOVER' ||
-              l.status === 'RETURN_REQUESTED' ||
-              l.status === 'RETURN_RECEIVED')
-        );
-        setAssociatedLoan(foundLoan || null);
+      // Prioritas 1: Ambil data pinjaman aktif langsung dari payload asset (dukungan scan publik tanpa login)
+      const activeLoanFromAsset = (asset as any)?.activeLoan;
+      if (activeLoanFromAsset) {
+        setAssociatedLoan(activeLoanFromAsset);
       } else {
-        setAssociatedLoan(null);
+        const safeLoansList: LoanRequest[] = Array.isArray(allLoans)
+          ? allLoans
+          : Array.isArray((allLoans as any)?.data)
+          ? (allLoans as any).data
+          : [];
+
+        if (safeLoansList.length > 0) {
+          const foundLoan = safeLoansList.find(
+            (l) =>
+              l.unit?.id === asset.id &&
+              (l.status === 'ACTIVE' ||
+                l.status === 'READY_FOR_HANDOVER' ||
+                l.status === 'RETURN_REQUESTED' ||
+                l.status === 'RETURN_RECEIVED')
+          );
+          setAssociatedLoan(foundLoan || null);
+        } else {
+          setAssociatedLoan(null);
+        }
       }
     } catch (err) {
       setScannedAsset(null);
@@ -222,8 +228,8 @@ export const PublicScanLoan: React.FC = () => {
     mutationFn: async () => {
       if (!associatedLoan) throw new Error('Transaksi pinjaman aktif tidak ditemukan');
       const borrowerUser: UserProfile = {
-        id: associatedLoan.borrowerId,
-        fullName: associatedLoan.borrowerName,
+        id: associatedLoan.borrowerId || 'guest',
+        fullName: associatedLoan.borrowerName || 'Guru / Pegawai',
         employeeNumber: associatedLoan.borrowerEmployeeNumber || '-',
         email: 'guru@sekolah.sch.id',
         role: associatedLoan.borrowerRole || 'GURU_PEGAWAI',
@@ -482,26 +488,37 @@ export const PublicScanLoan: React.FC = () => {
                 )}
 
                 {/* 2. SEDANG DIPINJAM */}
-                {scannedAsset.operationalStatus === 'ON_LOAN' && associatedLoan && (
+                {(scannedAsset.operationalStatus === 'ON_LOAN' ||
+                  scannedAsset.operationalStatus === 'RETURN_PENDING' ||
+                  scannedAsset.operationalStatus === 'RETURN_INSPECTION' ||
+                  Boolean(associatedLoan)) && (
                   <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-xl p-3.5 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="text-xs font-bold text-white flex items-center gap-1.5">
                         <Clock className="w-4 h-4 text-blue-200 shrink-0" />
-                        Unit Sedang Dipinjam: {associatedLoan.borrowerName}
+                        Unit Sedang Dipinjam{associatedLoan?.borrowerName ? `: ${associatedLoan.borrowerName}` : ''}
                       </div>
                       <p className="text-[11px] text-blue-100 mt-0.5">
-                        Nomor: {associatedLoan.loanNumber} • Jatuh tempo:{' '}
-                        {formatDate(associatedLoan.expectedReturnAt)}
+                        {associatedLoan?.loanNumber ? `Nomor: ${associatedLoan.loanNumber} • ` : ''}
+                        {associatedLoan?.expectedReturnAt
+                          ? `Jatuh tempo: ${formatDate(associatedLoan.expectedReturnAt)}`
+                          : 'Selesai menggunakan barang? Ajukan pengembalian langsung di sini.'}
                       </p>
                     </div>
-                    <Button
-                      size="md"
-                      onClick={() => setIsReturnModalOpen(true)}
-                      className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 font-bold px-5 py-2.5 text-xs shrink-0 rounded-lg"
-                      leftIcon={<ArrowRight className="w-4 h-4 text-blue-700" />}
-                    >
-                      Ajukan Pengembalian
-                    </Button>
+                    {associatedLoan?.status === 'RETURN_REQUESTED' ? (
+                      <span className="text-[11px] bg-amber-400 text-amber-950 font-bold px-3 py-1.5 rounded-lg shrink-0 shadow-2xs">
+                        Menunggu Verifikasi Admin
+                      </span>
+                    ) : (
+                      <Button
+                        size="md"
+                        onClick={() => setIsReturnModalOpen(true)}
+                        className="w-full sm:w-auto bg-white text-blue-900 hover:bg-blue-50 font-bold px-5 py-2.5 text-xs shrink-0 rounded-lg shadow-sm"
+                        leftIcon={<ArrowRight className="w-4 h-4 text-blue-700" />}
+                      >
+                        Ajukan Pengembalian
+                      </Button>
+                    )}
                   </div>
                 )}
 
