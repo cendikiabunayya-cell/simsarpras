@@ -25,6 +25,7 @@ app.use(
       // Izinkan request tanpa origin (mobile scanner, Google Lens, curl) atau dari whitelist
       if (
         !origin ||
+        config.corsAllowedOrigins.includes('*') ||
         config.corsAllowedOrigins.includes(origin) ||
         origin.startsWith('http://localhost') ||
         origin.startsWith('http://192.168.')
