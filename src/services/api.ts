@@ -24,20 +24,38 @@ const rawEnvUrl = isTestEnv && !import.meta.env.VITE_TEST_LIVE_API
   : (import.meta.env.VITE_API_BASE_URL || '');
 
 export const getApiBaseUrl = (): string => {
-  if (!rawEnvUrl) return '';
+  if (rawEnvUrl) {
+    if (
+      typeof window !== 'undefined' &&
+      window.location.hostname &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1' &&
+      rawEnvUrl.includes('localhost')
+    ) {
+      return rawEnvUrl.replace(/localhost|127\.0\.0\.1/, window.location.hostname);
+    }
+    return rawEnvUrl;
+  }
+  // Jika di Vercel / hosting cloud dan rawEnvUrl belum diset, otomatis sambungkan ke backend terintegrasi /api/v1
   if (
+    !isTestEnv &&
     typeof window !== 'undefined' &&
     window.location.hostname &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('127.0.0.1')
   ) {
-    return rawEnvUrl.replace(/localhost|127\.0\.0\.1/, window.location.hostname);
+    return '/api/v1';
   }
-  return rawEnvUrl;
+  return '';
 };
 
 const API_BASE_URL = getApiBaseUrl();
-export const IS_MOCK_MODE = !rawEnvUrl;
+export const IS_MOCK_MODE =
+  !rawEnvUrl &&
+  (typeof window === 'undefined' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    isTestEnv);
 
 export const MOCK_NOTICE_MESSAGE =
   'Aplikasi sedang menggunakan Mock Data / Mode Simulasi Lokal. Transaksi belum disimpan ke backend server Express.';
