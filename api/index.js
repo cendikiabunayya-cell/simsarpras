@@ -2967,6 +2967,30 @@ var DEFAULT_SETTINGS = {
   logoUrl: ""
 };
 async function loadSettings() {
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT school_name, address, phone, email, logo_url, updated_at, updated_by 
+         FROM school_settings 
+         WHERE id = 'default' 
+         LIMIT 1`
+      );
+      if (res.rows.length > 0) {
+        const row = res.rows[0];
+        return {
+          schoolName: row.school_name || DEFAULT_SETTINGS.schoolName,
+          address: row.address ?? DEFAULT_SETTINGS.address,
+          phone: row.phone ?? DEFAULT_SETTINGS.phone,
+          email: row.email ?? DEFAULT_SETTINGS.email,
+          logoUrl: row.logo_url ?? "",
+          updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : void 0,
+          updatedBy: row.updated_by ?? void 0
+        };
+      }
+    } catch (e) {
+      console.warn("[School Settings DB load error, fallback to file]:", e?.message || e);
+    }
+  }
   try {
     const raw = await fs2.readFile(SETTINGS_FILE, "utf-8");
     const parsed = JSON.parse(raw);
@@ -2979,8 +3003,35 @@ async function loadSettings() {
   }
 }
 async function saveSettings(data) {
-  await fs2.mkdir(SETTINGS_DIR, { recursive: true });
-  await fs2.writeFile(SETTINGS_FILE, JSON.stringify(data, null, 2), "utf-8");
+  if (pool) {
+    await pool.query(
+      `INSERT INTO school_settings (id, school_name, address, phone, email, logo_url, updated_at, updated_by)
+       VALUES ('default', $1, $2, $3, $4, $5, NOW(), $6)
+       ON CONFLICT (id) DO UPDATE SET
+         school_name = EXCLUDED.school_name,
+         address = EXCLUDED.address,
+         phone = EXCLUDED.phone,
+         email = EXCLUDED.email,
+         logo_url = EXCLUDED.logo_url,
+         updated_at = NOW(),
+         updated_by = EXCLUDED.updated_by`,
+      [
+        data.schoolName,
+        data.address,
+        data.phone,
+        data.email,
+        data.logoUrl || "",
+        data.updatedBy || "ADMIN_SARPRAS"
+      ]
+    );
+    return;
+  }
+  try {
+    await fs2.mkdir(SETTINGS_DIR, { recursive: true });
+    await fs2.writeFile(SETTINGS_FILE, JSON.stringify(data, null, 2), "utf-8");
+  } catch (fsErr) {
+    console.warn("[School Settings FS save skipped]:", fsErr?.message || fsErr);
+  }
 }
 schoolSettingsRouter.get("/", async (_req, res) => {
   try {

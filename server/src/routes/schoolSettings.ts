@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { pool } from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { schoolSettingsSchema } from '../validators.js';
 
@@ -9,7 +10,6 @@ export const schoolSettingsRouter = Router();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Menargetkan direktori server/data/school_settings.json
 const SETTINGS_DIR = path.resolve(__dirname, '../../data');
 const SETTINGS_FILE = path.resolve(SETTINGS_DIR, 'school_settings.json');
 
@@ -32,9 +32,35 @@ const DEFAULT_SETTINGS: SchoolSettingsData = {
 };
 
 /**
- * Membaca pengaturan sekolah dari file persisten JSON
+ * Membaca pengaturan sekolah dari Database PostgreSQL / Supabase,
+ * dengan fallback ke file JSON jika pool belum terhubung.
  */
 async function loadSettings(): Promise<SchoolSettingsData> {
+  if (pool) {
+    try {
+      const res = await pool.query(
+        `SELECT school_name, address, phone, email, logo_url, updated_at, updated_by 
+         FROM school_settings 
+         WHERE id = 'default' 
+         LIMIT 1`
+      );
+      if (res.rows.length > 0) {
+        const row = res.rows[0];
+        return {
+          schoolName: row.school_name || DEFAULT_SETTINGS.schoolName,
+          address: row.address ?? DEFAULT_SETTINGS.address,
+          phone: row.phone ?? DEFAULT_SETTINGS.phone,
+          email: row.email ?? DEFAULT_SETTINGS.email,
+          logoUrl: row.logo_url ?? '',
+          updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
+          updatedBy: row.updated_by ?? undefined,
+        };
+      }
+    } catch (e: any) {
+      console.warn('[School Settings DB load error, fallback to file]:', e?.message || e);
+    }
+  }
+
   try {
     const raw = await fs.readFile(SETTINGS_FILE, 'utf-8');
     const parsed = JSON.parse(raw);
@@ -43,17 +69,46 @@ async function loadSettings(): Promise<SchoolSettingsData> {
       ...parsed,
     };
   } catch {
-    // Jika file belum ada, kembalikan pengaturan default
     return { ...DEFAULT_SETTINGS };
   }
 }
 
 /**
- * Menyimpan pengaturan sekolah ke file JSON persisten
+ * Menyimpan pengaturan sekolah ke Database PostgreSQL / Supabase,
+ * dengan fallback ke file JSON lokal jika database tidak tersedia.
  */
 async function saveSettings(data: SchoolSettingsData): Promise<void> {
-  await fs.mkdir(SETTINGS_DIR, { recursive: true });
-  await fs.writeFile(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  if (pool) {
+    await pool.query(
+      `INSERT INTO school_settings (id, school_name, address, phone, email, logo_url, updated_at, updated_by)
+       VALUES ('default', $1, $2, $3, $4, $5, NOW(), $6)
+       ON CONFLICT (id) DO UPDATE SET
+         school_name = EXCLUDED.school_name,
+         address = EXCLUDED.address,
+         phone = EXCLUDED.phone,
+         email = EXCLUDED.email,
+         logo_url = EXCLUDED.logo_url,
+         updated_at = NOW(),
+         updated_by = EXCLUDED.updated_by`,
+      [
+        data.schoolName,
+        data.address,
+        data.phone,
+        data.email,
+        data.logoUrl || '',
+        data.updatedBy || 'ADMIN_SARPRAS',
+      ]
+    );
+    return;
+  }
+
+  // Fallback lokal disk jika pool tidak ada
+  try {
+    await fs.mkdir(SETTINGS_DIR, { recursive: true });
+    await fs.writeFile(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (fsErr: any) {
+    console.warn('[School Settings FS save skipped]:', fsErr?.message || fsErr);
+  }
 }
 
 /**

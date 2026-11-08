@@ -80,6 +80,17 @@ CREATE TABLE IF NOT EXISTS funding_sources (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS school_settings (
+    id VARCHAR(64) PRIMARY KEY DEFAULT 'default',
+    school_name VARCHAR(255) NOT NULL DEFAULT 'MIS Cendikia Bunayya',
+    address TEXT NOT NULL DEFAULT 'Jl. Pendidikan No. 123, Medan, Sumatera Utara',
+    phone VARCHAR(64) NOT NULL DEFAULT '081234567890',
+    email VARCHAR(128) NOT NULL DEFAULT 'sarpras@cendikiabunayya.sch.id',
+    logo_url TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(255) DEFAULT 'ADMIN_SARPRAS'
+);
+
 -- -----------------------------------------------------------------------------
 -- 3. TABEL PENGGUNA (USERS & PROFILES)
 -- -----------------------------------------------------------------------------
