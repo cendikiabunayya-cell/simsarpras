@@ -139,6 +139,15 @@ async function handleLoanSubmission(req: Request, res: Response) {
     const loanNumber = `PINJAM-${dateStr}-${randomSuffix}`;
     const loanId = `loan-${Date.now()}-${randomSuffix}`;
 
+    // Validasi apakah borrowerId benar-benar ada di tabel users (untuk menjaga integritas FK)
+    let validBorrowerId: string | null = null;
+    if (borrowerId && !borrowerId.startsWith('user-guest-') && !borrowerId.startsWith('user-custom-')) {
+      const userCheck = await client.query('SELECT id FROM users WHERE id = $1 LIMIT 1', [borrowerId]);
+      if (userCheck.rows.length > 0) {
+        validBorrowerId = userCheck.rows[0].id;
+      }
+    }
+
     // 7. Masukkan transaksi peminjaman
     const loanInsertRes = await client.query(
       `INSERT INTO loans (
@@ -151,7 +160,7 @@ async function handleLoanSubmission(req: Request, res: Response) {
         loanId,
         loanNumber,
         canonicalAssetId,
-        borrowerId || null,
+        validBorrowerId,
         borrowerName,
         borrowerEmployeeNumber || '-',
         borrowerRole || 'GURU_PEGAWAI',

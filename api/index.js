@@ -1302,6 +1302,13 @@ async function handleLoanSubmission(req, res) {
     const randomSuffix = Math.floor(1e3 + Math.random() * 9e3);
     const loanNumber = `PINJAM-${dateStr}-${randomSuffix}`;
     const loanId = `loan-${Date.now()}-${randomSuffix}`;
+    let validBorrowerId = null;
+    if (borrowerId && !borrowerId.startsWith("user-guest-") && !borrowerId.startsWith("user-custom-")) {
+      const userCheck = await client.query("SELECT id FROM users WHERE id = $1 LIMIT 1", [borrowerId]);
+      if (userCheck.rows.length > 0) {
+        validBorrowerId = userCheck.rows[0].id;
+      }
+    }
     const loanInsertRes = await client.query(
       `INSERT INTO loans (
         id, loan_number, asset_id, borrower_id, borrower_name, borrower_employee_number,
@@ -1313,7 +1320,7 @@ async function handleLoanSubmission(req, res) {
         loanId,
         loanNumber,
         canonicalAssetId,
-        borrowerId || null,
+        validBorrowerId,
         borrowerName,
         borrowerEmployeeNumber || "-",
         borrowerRole || "GURU_PEGAWAI",
@@ -4279,6 +4286,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/assets", assetsRouter);
 app.use("/api/v1/loans", loansRouter);
+app.use("/api/v1/loan-requests", loansRouter);
 app.use("/api/v1/locations", locationsRouter);
 app.use("/api/v1/categories", categoriesRouter);
 app.use("/api/v1/funding-sources", fundingSourcesRouter);
@@ -4293,6 +4301,7 @@ app.use("/v1/auth", authRouter);
 app.use("/v1/users", usersRouter);
 app.use("/v1/assets", assetsRouter);
 app.use("/v1/loans", loansRouter);
+app.use("/v1/loan-requests", loansRouter);
 app.use("/v1/locations", locationsRouter);
 app.use("/v1/categories", categoriesRouter);
 app.use("/v1/funding-sources", fundingSourcesRouter);
