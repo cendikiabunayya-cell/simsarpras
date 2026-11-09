@@ -189,6 +189,8 @@ export const httpsUrlSchema = z
   .refine(
     (val) => {
       if (!val) return true; // Opsional / kosong diperbolehkan
+      // Izinkan path lokal publik seperti /logo-cendikia.png
+      if (val.startsWith('/')) return true;
       try {
         const parsed = new URL(val);
         // Wajib protokol HTTPS aman (tolak javascript:, data:, file:, http:, dll)

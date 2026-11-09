@@ -62,8 +62,12 @@ export const SchoolSettings: React.FC = () => {
       if (!schoolName.trim()) {
         throw new Error('Nama sekolah wajib diisi.');
       }
-      if (logoUrl.trim() && !logoUrl.trim().startsWith('https://')) {
-        throw new Error('Tautan logo harus menggunakan protokol HTTPS (https://).');
+      if (
+        logoUrl.trim() &&
+        !logoUrl.trim().startsWith('https://') &&
+        !logoUrl.trim().startsWith('/')
+      ) {
+        throw new Error('Tautan logo harus menggunakan protokol HTTPS (https://) atau path lokal (contoh: /logo-cendikia.png).');
       }
       if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
         throw new Error('Format email sekolah tidak valid.');
@@ -231,24 +235,24 @@ export const SchoolSettings: React.FC = () => {
               {/* Tautan Logo */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tautan URL Logo Sekolah (Wajib HTTPS)
+                  Tautan URL Logo Sekolah (HTTPS atau Path Lokal)
                 </label>
                 <div className="relative">
                   <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
-                    type="url"
+                    type="text"
                     disabled={!canEdit || isLoading}
                     value={logoUrl}
                     onChange={(e) => {
                       setLogoUrl(e.target.value);
                       setLogoPreviewFailed(false);
                     }}
-                    placeholder="https://example.com/logo-cendikia.png"
+                    placeholder="https://example.com/logo.png atau /logo-cendikia.png"
                     className="w-full pl-9 pr-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 disabled:bg-slate-50 transition"
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Masukkan link langsung ke gambar (PNG/SVG/WebP) atau tautan publik gambar berprotokol HTTPS.
+                  Masukkan link langsung ke gambar (PNG/SVG/WebP) berprotokol HTTPS atau path lokal publik seperti <code>/logo-cendikia.png</code>.
                 </p>
               </div>
 

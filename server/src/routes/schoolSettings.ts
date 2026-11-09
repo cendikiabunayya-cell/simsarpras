@@ -113,10 +113,10 @@ async function saveSettings(data: SchoolSettingsData): Promise<void> {
           data.phone,
           data.email,
           data.logoUrl || '',
-          data.headmasterName || DEFAULT_SETTINGS.headmasterName,
-          data.headmasterNip || DEFAULT_SETTINGS.headmasterNip,
-          data.sarprasManagerName || DEFAULT_SETTINGS.sarprasManagerName,
-          data.sarprasManagerNip || DEFAULT_SETTINGS.sarprasManagerNip,
+          data.headmasterName ?? DEFAULT_SETTINGS.headmasterName,
+          data.headmasterNip ?? DEFAULT_SETTINGS.headmasterNip,
+          data.sarprasManagerName ?? DEFAULT_SETTINGS.sarprasManagerName,
+          data.sarprasManagerNip ?? DEFAULT_SETTINGS.sarprasManagerNip,
           data.updatedBy || 'ADMIN_SARPRAS',
         ]
       );

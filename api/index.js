@@ -161,6 +161,7 @@ var updateUserStatusSchema = z.object({
 var httpsUrlSchema = z.string().trim().max(1e3, "URL tautan foto maksimal 1000 karakter.").refine(
   (val) => {
     if (!val) return true;
+    if (val.startsWith("/")) return true;
     try {
       const parsed = new URL(val);
       if (parsed.protocol !== "https:") return false;
@@ -3090,10 +3091,10 @@ async function saveSettings(data) {
           data.phone,
           data.email,
           data.logoUrl || "",
-          data.headmasterName || DEFAULT_SETTINGS.headmasterName,
-          data.headmasterNip || DEFAULT_SETTINGS.headmasterNip,
-          data.sarprasManagerName || DEFAULT_SETTINGS.sarprasManagerName,
-          data.sarprasManagerNip || DEFAULT_SETTINGS.sarprasManagerNip,
+          data.headmasterName ?? DEFAULT_SETTINGS.headmasterName,
+          data.headmasterNip ?? DEFAULT_SETTINGS.headmasterNip,
+          data.sarprasManagerName ?? DEFAULT_SETTINGS.sarprasManagerName,
+          data.sarprasManagerNip ?? DEFAULT_SETTINGS.sarprasManagerNip,
           data.updatedBy || "ADMIN_SARPRAS"
         ]
       );
