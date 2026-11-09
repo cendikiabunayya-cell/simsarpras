@@ -119,31 +119,10 @@ export const MOCK_LOCATIONS = [
         isActive: true,
     },
     {
-        id: 'loc-2',
-        name: 'Ruang Multimedia & Studio',
-        code: 'MM-STUDIO',
-        description: 'Studio podcast, editing video, dan fotografi sekolah',
-        isActive: true,
-    },
-    {
         id: 'loc-3',
         name: 'Ruang Guru & Tata Usaha',
         code: 'RG-01',
         description: 'Ruang kerja staf pendidik dan kependidikan',
-        isActive: true,
-    },
-    {
-        id: 'loc-4',
-        name: 'Aula Utama Ki Hajar Dewantara',
-        code: 'AULA-01',
-        description: 'Gedung serbaguna untuk upacara, seminar, dan rapat',
-        isActive: true,
-    },
-    {
-        id: 'loc-5',
-        name: 'Ruang Kelas X RPL 1',
-        code: 'KLS-X-RPL1',
-        description: 'Ruang belajar teori lantai 1 Gedung A',
         isActive: true,
     },
     {

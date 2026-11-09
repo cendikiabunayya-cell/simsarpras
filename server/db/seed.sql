@@ -18,14 +18,11 @@ ON CONFLICT (id) DO UPDATE SET
     default_loan_mode = EXCLUDED.default_loan_mode,
     description = EXCLUDED.description;
 
--- 2. SEED LOKASI / RUANGAN (7 Data)
+-- 2. SEED LOKASI / RUANGAN
 INSERT INTO locations (id, name, code, description, is_active)
 VALUES
     ('loc-1', 'Lab Komputer 1 (TIK)', 'LAB-TIK-1', 'Lantai 2 Gedung B, laboratorium komputer siswa', true),
-    ('loc-2', 'Ruang Multimedia & Studio', 'MM-STUDIO', 'Studio podcast, editing video, dan fotografi sekolah', true),
     ('loc-3', 'Ruang Guru & Tata Usaha', 'RG-01', 'Ruang kerja staf pendidik dan kependidikan', true),
-    ('loc-4', 'Aula Utama Ki Hajar Dewantara', 'AULA-01', 'Gedung serbaguna untuk upacara, seminar, dan rapat', true),
-    ('loc-5', 'Ruang Kelas X RPL 1', 'KLS-X-RPL1', 'Ruang belajar teori lantai 1 Gedung A', true),
     ('loc-6', 'Gudang Sarpras Olahraga', 'GUD-OLR', 'Penyimpanan peralatan olahraga samping lapangan', true),
     ('loc-7', 'Gudang Sarpras Utama', 'GUD-01', 'Gudang penyimpanan sentral aset inventaris sekolah', true)
 ON CONFLICT (id) DO UPDATE SET
