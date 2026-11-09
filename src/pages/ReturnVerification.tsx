@@ -19,7 +19,7 @@ import { TableSkeleton } from '../components/ui/LoadingSkeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SyncIndicator } from '../components/ui/SyncIndicator';
 import { getAutoRefreshOptions } from '../hooks/useAutoRefreshQuery';
-import { formatDate, getLoanStatusBadge } from '../lib/utils';
+import { formatDate, getLoanStatusBadge, getCategoryAndItemNumber } from '../lib/utils';
 
 export const ReturnVerification: React.FC = () => {
   const queryClient = useQueryClient();
@@ -281,7 +281,14 @@ export const ReturnVerification: React.FC = () => {
                         </td>
 
                         <td className="px-5 py-4">
-                          <div className="font-semibold text-slate-900">{loan.unit.itemName}</div>
+                          <div className="font-semibold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                            <span>{loan.unit.itemName}</span>
+                            {getCategoryAndItemNumber(loan.unit) && (
+                              <span className="inline-block font-sans text-[10px] font-bold text-blue-800 bg-blue-100/70 px-1.5 py-0.2 rounded border border-blue-200">
+                                {getCategoryAndItemNumber(loan.unit)}
+                              </span>
+                            )}
+                          </div>
                           <div className="text-[11px] text-slate-500 font-mono">
                             {loan.unit.assetCode} — {loan.unit.locationName}
                           </div>
@@ -393,9 +400,16 @@ export const ReturnVerification: React.FC = () => {
               </div>
               <div>
                 <span className="text-slate-400 block text-[11px]">Identitas Barang:</span>
-                <strong className="text-slate-900 text-sm block">
-                  {selectedLoanForVerification.unit.itemName}
-                </strong>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <strong className="text-slate-900 text-sm">
+                    {selectedLoanForVerification.unit.itemName}
+                  </strong>
+                  {getCategoryAndItemNumber(selectedLoanForVerification.unit) && (
+                    <span className="inline-block font-sans text-[10px] font-bold text-blue-800 bg-blue-100/70 px-1.5 py-0.2 rounded border border-blue-200">
+                      {getCategoryAndItemNumber(selectedLoanForVerification.unit)}
+                    </span>
+                  )}
+                </div>
                 <span className="text-blue-700 font-mono font-bold text-[11px] block">
                   Kode: {selectedLoanForVerification.unit.assetCode}
                 </span>

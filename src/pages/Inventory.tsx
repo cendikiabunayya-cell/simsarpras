@@ -42,38 +42,8 @@ import {
   getConditionBadge,
   getLoanModeBadge,
   getOperationalBadge,
+  getCategoryAndItemNumber,
 } from '../lib/utils';
-
-/**
- * Helper format label kategori + nomor barang (misal: "No: 22" -> "Laptop 22")
- */
-export function getCategoryAndItemNumber(item: {
-  itemNumber?: string | null;
-  categoryName?: string;
-  itemName?: string;
-}): string {
-  const num = (item.itemNumber && String(item.itemNumber).trim()) || '';
-  if (!num) return '';
-
-  // Jika sudah memuat huruf/nama kategori (misal: "Laptop 22"), langsung gunakan
-  if (/[a-zA-Z]/.test(num)) {
-    return num;
-  }
-
-  // Tentukan label kategori atau deteksi dari nama barang
-  let cat = (item.categoryName || '').trim();
-  const itemLower = (item.itemName || '').toLowerCase();
-
-  if (!cat || cat.includes('/') || cat.toLowerCase() === 'umum') {
-    if (itemLower.includes('laptop')) cat = 'Laptop';
-    else if (itemLower.includes('proyektor') || itemLower.includes('projector') || itemLower.includes('infocus')) cat = 'Infocus';
-    else if (itemLower.includes('kamera') || itemLower.includes('camera')) cat = 'Kamera';
-    else if (itemLower.includes('komputer') || itemLower.includes('pc')) cat = 'PC';
-    else if (itemLower.includes('speaker') || itemLower.includes('sound')) cat = 'Speaker';
-  }
-
-  return cat ? `${cat} ${num}` : `No: ${num}`;
-}
 
 export const Inventory: React.FC = () => {
   const queryClient = useQueryClient();
@@ -1677,7 +1647,14 @@ export const Inventory: React.FC = () => {
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex items-center justify-between">
               <div>
                 <span className="text-slate-500 block">Barang yang Diajukan:</span>
-                <span className="font-bold text-slate-900">{selectedAsset.itemName}</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-bold text-slate-900">{selectedAsset.itemName}</span>
+                  {getCategoryAndItemNumber(selectedAsset) && (
+                    <span className="inline-block font-sans text-[10px] font-bold text-blue-800 bg-blue-100/70 px-1.5 py-0.2 rounded border border-blue-200">
+                      {getCategoryAndItemNumber(selectedAsset)}
+                    </span>
+                  )}
+                </div>
                 <span className="text-slate-500 font-mono block text-[11px]">
                   {selectedAsset.assetCode} — {selectedAsset.locationName}
                 </span>

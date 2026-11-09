@@ -155,3 +155,35 @@ export function getLoanModeBadge(mode: LoanMode): {
     description: 'Wajib disetujui Admin Sarpras sebelum barang diserahkan.',
   };
 }
+
+/**
+ * Helper format label kategori + nomor barang (misal: "No: 22" -> "Laptop 22")
+ */
+export function getCategoryAndItemNumber(item?: {
+  itemNumber?: string | null;
+  categoryName?: string;
+  itemName?: string;
+} | null): string {
+  if (!item) return '';
+  const num = (item.itemNumber && String(item.itemNumber).trim()) || '';
+  if (!num) return '';
+
+  // Jika sudah memuat huruf/nama kategori (misal: "Laptop 22"), langsung gunakan
+  if (/[a-zA-Z]/.test(num)) {
+    return num;
+  }
+
+  // Tentukan label kategori atau deteksi dari nama barang
+  let cat = (item.categoryName || '').trim();
+  const itemLower = (item.itemName || '').toLowerCase();
+
+  if (!cat || cat.includes('/') || cat.toLowerCase() === 'umum') {
+    if (itemLower.includes('laptop')) cat = 'Laptop';
+    else if (itemLower.includes('proyektor') || itemLower.includes('projector') || itemLower.includes('infocus')) cat = 'Infocus';
+    else if (itemLower.includes('kamera') || itemLower.includes('camera')) cat = 'Kamera';
+    else if (itemLower.includes('komputer') || itemLower.includes('pc')) cat = 'PC';
+    else if (itemLower.includes('speaker') || itemLower.includes('sound')) cat = 'Speaker';
+  }
+
+  return cat ? `${cat} ${num}` : `No: ${num}`;
+}

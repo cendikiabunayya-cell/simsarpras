@@ -19,6 +19,7 @@ import {
   getConditionBadge,
   getLoanStatusBadge,
   getOperationalBadge,
+  getCategoryAndItemNumber,
 } from '../lib/utils';
 
 export const Reports: React.FC = () => {
@@ -294,7 +295,11 @@ export const Reports: React.FC = () => {
                         <td className="p-2.5 border-r border-slate-200 text-center font-mono">{index + 1}</td>
                         <td className="p-2.5 border-r border-slate-200 font-mono font-bold">{asset.assetCode}</td>
                         <td className="p-2.5 border-r border-slate-200 font-medium">
-                          {asset.itemName} <span className="text-slate-500 font-normal">({asset.itemBrand})</span>
+                          {asset.itemName}{' '}
+                          {getCategoryAndItemNumber(asset) ? (
+                            <span className="font-bold text-blue-800">[{getCategoryAndItemNumber(asset)}] </span>
+                          ) : null}
+                          <span className="text-slate-500 font-normal">({asset.itemBrand})</span>
                         </td>
                         <td className="p-2.5 border-r border-slate-200">{asset.categoryName}</td>
                         <td className="p-2.5 border-r border-slate-200 text-slate-600 max-w-xs">{asset.technicalSpecs}</td>
@@ -333,7 +338,11 @@ export const Reports: React.FC = () => {
                           {loan.borrowerName} ({loan.borrowerEmployeeNumber})
                         </td>
                         <td className="p-2.5 border-r border-slate-200 font-medium">
-                          {loan.unit.itemName} ({loan.unit.assetCode})
+                          {loan.unit.itemName}{' '}
+                          {getCategoryAndItemNumber(loan.unit) ? (
+                            <span className="font-bold text-blue-800">[{getCategoryAndItemNumber(loan.unit)}] </span>
+                          ) : null}
+                          ({loan.unit.assetCode})
                         </td>
                         <td className="p-2.5 border-r border-slate-200">{formatDateOnly(loan.requestedAt)}</td>
                         <td className="p-2.5 border-r border-slate-200">{formatDateOnly(loan.expectedReturnAt)}</td>

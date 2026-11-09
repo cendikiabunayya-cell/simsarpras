@@ -34,6 +34,7 @@ import {
   formatDate,
   getConditionBadge,
   getOperationalBadge,
+  getCategoryAndItemNumber,
 } from '../lib/utils';
 
 const getLocalDateTimeString = (date: Date): string => {
@@ -294,6 +295,11 @@ export const QrScanner: React.FC = () => {
                   <span className="font-mono font-bold text-xs text-blue-900 bg-blue-100/90 px-2 py-0.5 rounded">
                     {scannedAsset.assetCode}
                   </span>
+                  {getCategoryAndItemNumber(scannedAsset) && (
+                    <span className="font-sans font-bold text-xs text-blue-900 bg-blue-100/80 px-2 py-0.5 rounded border border-blue-200">
+                      {getCategoryAndItemNumber(scannedAsset)}
+                    </span>
+                  )}
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                       scannedAsset.institution === 'RA Cendikia Bunayya'
@@ -714,9 +720,16 @@ export const QrScanner: React.FC = () => {
             {/* Unit Snapshot Ringkas 1 Baris */}
             <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <span className="font-bold text-slate-900 text-xs block truncate">
-                  {scannedAsset.itemName}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-bold text-slate-900 text-xs truncate">
+                    {scannedAsset.itemName}
+                  </span>
+                  {getCategoryAndItemNumber(scannedAsset) && (
+                    <span className="inline-block font-sans text-[10px] font-bold text-blue-800 bg-blue-100/70 px-1.5 py-0.2 rounded border border-blue-200 shrink-0">
+                      {getCategoryAndItemNumber(scannedAsset)}
+                    </span>
+                  )}
+                </div>
                 <span className="text-slate-500 font-mono text-[11px] block truncate">
                   {scannedAsset.assetCode} • {scannedAsset.locationName}
                 </span>
@@ -875,7 +888,9 @@ export const QrScanner: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Nama Barang:</span>
-                <span className="font-semibold text-slate-900">{scannedAsset.itemName}</span>
+                <span className="font-semibold text-slate-900">
+                  {scannedAsset.itemName} {getCategoryAndItemNumber(scannedAsset) ? `(${getCategoryAndItemNumber(scannedAsset)})` : ''}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Kode Inventaris:</span>

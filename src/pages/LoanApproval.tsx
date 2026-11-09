@@ -15,7 +15,7 @@ import { TableSkeleton } from '../components/ui/LoadingSkeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SyncIndicator } from '../components/ui/SyncIndicator';
 import { getAutoRefreshOptions } from '../hooks/useAutoRefreshQuery';
-import { formatDate, getLoanStatusBadge } from '../lib/utils';
+import { formatDate, getLoanStatusBadge, getCategoryAndItemNumber } from '../lib/utils';
 
 export const LoanApproval: React.FC = () => {
   const queryClient = useQueryClient();
@@ -249,8 +249,13 @@ export const LoanApproval: React.FC = () => {
 
                         {/* Unit Barang */}
                         <td className="px-5 py-4">
-                          <div className="font-semibold text-slate-900">
-                            {loan.unit.itemName}
+                          <div className="font-semibold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                            <span>{loan.unit.itemName}</span>
+                            {getCategoryAndItemNumber(loan.unit) && (
+                              <span className="inline-block font-sans text-[10px] font-bold text-blue-800 bg-blue-100/70 px-1.5 py-0.2 rounded border border-blue-200">
+                                {getCategoryAndItemNumber(loan.unit)}
+                              </span>
+                            )}
                           </div>
                           <div className="text-[11px] text-slate-500 font-mono">
                             {loan.unit.assetCode} — {loan.unit.locationName}
