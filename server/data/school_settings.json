@@ -1,9 +1,13 @@
 {
-  "schoolName": "Yay. Cendikia Bunayya",
-  "address": "Jln. Terus Jaya No.2 Kabanjahe",
-  "phone": "",
-  "email": "",
+  "schoolName": "MIS Cendikia Bunayya Medan",
+  "address": "Jl. STM No. 12, Kel. Suka Maju, Kec. Medan Amplas, Kota Medan",
+  "phone": "061-7890123",
+  "email": "info@cendikiabunayya.sch.id",
   "logoUrl": "https://cendikiabunayya.sch.id/assets/logo.png",
-  "updatedAt": "2026-11-07T07:02:15.411Z",
-  "updatedBy": "yudha"
+  "headmasterName": "",
+  "headmasterNip": "",
+  "sarprasManagerName": "",
+  "sarprasManagerNip": "",
+  "updatedAt": "2026-11-09T01:40:23.711Z",
+  "updatedBy": "Bambang Hermawan, S.Kom."
 }

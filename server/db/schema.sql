@@ -82,11 +82,15 @@ CREATE TABLE IF NOT EXISTS funding_sources (
 
 CREATE TABLE IF NOT EXISTS school_settings (
     id VARCHAR(64) PRIMARY KEY DEFAULT 'default',
-    school_name VARCHAR(255) NOT NULL DEFAULT 'MIS Cendikia Bunayya',
-    address TEXT NOT NULL DEFAULT 'Jl. Pendidikan No. 123, Medan, Sumatera Utara',
+    school_name VARCHAR(255) NOT NULL DEFAULT 'Madrasah Ibtidaiyah Swasta Cendikia Bunayya',
+    address TEXT NOT NULL DEFAULT 'Jalan Terus Jaya No. 2 Kec. Kabanjahe Kab. Karo Sumut',
     phone VARCHAR(64) NOT NULL DEFAULT '081234567890',
     email VARCHAR(128) NOT NULL DEFAULT 'sarpras@cendikiabunayya.sch.id',
-    logo_url TEXT,
+    logo_url TEXT DEFAULT '/logo-cendikia.png',
+    headmaster_name VARCHAR(255) DEFAULT 'Drs. H. Ahmad Sudirman, M.Pd.',
+    headmaster_nip VARCHAR(100) DEFAULT '196811121994031002',
+    sarpras_manager_name VARCHAR(255) DEFAULT 'Bambang Hermawan, S.Kom.',
+    sarpras_manager_nip VARCHAR(100) DEFAULT '198204152008011005',
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_by VARCHAR(255) DEFAULT 'ADMIN_SARPRAS'
 );

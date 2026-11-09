@@ -306,6 +306,10 @@ export const schoolSettingsSchema = z.object({
     .optional()
     .default(''),
   logoUrl: httpsUrlSchema.optional().default(''),
+  headmasterName: z.string().trim().max(255).optional().default(''),
+  headmasterNip: z.string().trim().max(100).optional().default(''),
+  sarprasManagerName: z.string().trim().max(255).optional().default(''),
+  sarprasManagerNip: z.string().trim().max(100).optional().default(''),
 });
 
 /**

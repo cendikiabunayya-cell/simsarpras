@@ -8,6 +8,10 @@ export const DEFAULT_SCHOOL_SETTINGS: SchoolSettings = {
   phone: '081234567890',
   email: 'sarpras@cendikiabunayya.sch.id',
   logoUrl: '/logo-cendikia.png',
+  headmasterName: 'Drs. H. Ahmad Sudirman, M.Pd.',
+  headmasterNip: '196811121994031002',
+  sarprasManagerName: 'Bambang Hermawan, S.Kom.',
+  sarprasManagerNip: '198204152008011005',
 };
 
 /**
@@ -31,5 +35,9 @@ export function useSchoolSettings() {
     phone: settings.phone || DEFAULT_SCHOOL_SETTINGS.phone,
     email: settings.email || DEFAULT_SCHOOL_SETTINGS.email,
     logoUrl: settings.logoUrl || '',
+    headmasterName: settings.headmasterName || DEFAULT_SCHOOL_SETTINGS.headmasterName || 'Drs. H. Ahmad Sudirman, M.Pd.',
+    headmasterNip: settings.headmasterNip || DEFAULT_SCHOOL_SETTINGS.headmasterNip || '196811121994031002',
+    sarprasManagerName: settings.sarprasManagerName || DEFAULT_SCHOOL_SETTINGS.sarprasManagerName || 'Bambang Hermawan, S.Kom.',
+    sarprasManagerNip: settings.sarprasManagerNip || DEFAULT_SCHOOL_SETTINGS.sarprasManagerNip || '198204152008011005',
   };
 }

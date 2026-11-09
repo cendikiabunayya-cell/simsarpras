@@ -207,7 +207,11 @@ var schoolSettingsSchema = z.object({
     },
     { message: "Format email sekolah tidak valid." }
   ).optional().default(""),
-  logoUrl: httpsUrlSchema.optional().default("")
+  logoUrl: httpsUrlSchema.optional().default(""),
+  headmasterName: z.string().trim().max(255).optional().default(""),
+  headmasterNip: z.string().trim().max(100).optional().default(""),
+  sarprasManagerName: z.string().trim().max(255).optional().default(""),
+  sarprasManagerNip: z.string().trim().max(100).optional().default("")
 });
 var assetCreateSchema = z.object({
   itemName: z.string({ required_error: "Nama barang wajib diisi." }).trim().min(2, "Nama barang minimal 2 karakter.").max(255, "Nama barang maksimal 255 karakter."),
@@ -3016,13 +3020,17 @@ var DEFAULT_SETTINGS = {
   address: "Jalan Terus Jaya No. 2 Kec. Kabanjahe Kab. Karo Sumut",
   phone: "081234567890",
   email: "sarpras@cendikiabunayya.sch.id",
-  logoUrl: "/logo-cendikia.png"
+  logoUrl: "/logo-cendikia.png",
+  headmasterName: "Drs. H. Ahmad Sudirman, M.Pd.",
+  headmasterNip: "196811121994031002",
+  sarprasManagerName: "Bambang Hermawan, S.Kom.",
+  sarprasManagerNip: "198204152008011005"
 };
 async function loadSettings() {
   if (pool) {
     try {
       const res = await pool.query(
-        `SELECT school_name, address, phone, email, logo_url, updated_at, updated_by 
+        `SELECT school_name, address, phone, email, logo_url, headmaster_name, headmaster_nip, sarpras_manager_name, sarpras_manager_nip, updated_at, updated_by 
          FROM school_settings 
          WHERE id = 'default' 
          LIMIT 1`
@@ -3035,6 +3043,10 @@ async function loadSettings() {
           phone: row.phone ?? DEFAULT_SETTINGS.phone,
           email: row.email ?? DEFAULT_SETTINGS.email,
           logoUrl: row.logo_url ?? "",
+          headmasterName: row.headmaster_name ?? DEFAULT_SETTINGS.headmasterName,
+          headmasterNip: row.headmaster_nip ?? DEFAULT_SETTINGS.headmasterNip,
+          sarprasManagerName: row.sarpras_manager_name ?? DEFAULT_SETTINGS.sarprasManagerName,
+          sarprasManagerNip: row.sarpras_manager_nip ?? DEFAULT_SETTINGS.sarprasManagerNip,
           updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : void 0,
           updatedBy: row.updated_by ?? void 0
         };
@@ -3056,27 +3068,39 @@ async function loadSettings() {
 }
 async function saveSettings(data) {
   if (pool) {
-    await pool.query(
-      `INSERT INTO school_settings (id, school_name, address, phone, email, logo_url, updated_at, updated_by)
-       VALUES ('default', $1, $2, $3, $4, $5, NOW(), $6)
-       ON CONFLICT (id) DO UPDATE SET
-         school_name = EXCLUDED.school_name,
-         address = EXCLUDED.address,
-         phone = EXCLUDED.phone,
-         email = EXCLUDED.email,
-         logo_url = EXCLUDED.logo_url,
-         updated_at = NOW(),
-         updated_by = EXCLUDED.updated_by`,
-      [
-        data.schoolName,
-        data.address,
-        data.phone,
-        data.email,
-        data.logoUrl || "",
-        data.updatedBy || "ADMIN_SARPRAS"
-      ]
-    );
-    return;
+    try {
+      await pool.query(
+        `INSERT INTO school_settings (id, school_name, address, phone, email, logo_url, headmaster_name, headmaster_nip, sarpras_manager_name, sarpras_manager_nip, updated_at, updated_by)
+         VALUES ('default', $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+         ON CONFLICT (id) DO UPDATE SET
+           school_name = EXCLUDED.school_name,
+           address = EXCLUDED.address,
+           phone = EXCLUDED.phone,
+           email = EXCLUDED.email,
+           logo_url = EXCLUDED.logo_url,
+           headmaster_name = EXCLUDED.headmaster_name,
+           headmaster_nip = EXCLUDED.headmaster_nip,
+           sarpras_manager_name = EXCLUDED.sarpras_manager_name,
+           sarpras_manager_nip = EXCLUDED.sarpras_manager_nip,
+           updated_at = NOW(),
+           updated_by = EXCLUDED.updated_by`,
+        [
+          data.schoolName,
+          data.address,
+          data.phone,
+          data.email,
+          data.logoUrl || "",
+          data.headmasterName || DEFAULT_SETTINGS.headmasterName,
+          data.headmasterNip || DEFAULT_SETTINGS.headmasterNip,
+          data.sarprasManagerName || DEFAULT_SETTINGS.sarprasManagerName,
+          data.sarprasManagerNip || DEFAULT_SETTINGS.sarprasManagerNip,
+          data.updatedBy || "ADMIN_SARPRAS"
+        ]
+      );
+      return;
+    } catch (e) {
+      console.warn("[School Settings DB save error, fallback to file]:", e?.message || e);
+    }
   }
   try {
     await fs2.mkdir(SETTINGS_DIR, { recursive: true });

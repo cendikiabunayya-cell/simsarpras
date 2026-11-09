@@ -25,7 +25,15 @@ export const Reports: React.FC = () => {
   const [reportType, setReportType] = useState<'inventory' | 'loans' | 'returns' | 'maintenance'>('inventory');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const { schoolName, address, logoUrl } = useSchoolSettings();
+  const {
+    schoolName,
+    address,
+    logoUrl,
+    headmasterName,
+    headmasterNip,
+    sarprasManagerName,
+    sarprasManagerNip,
+  } = useSchoolSettings();
 
   const { data: assets, isLoading: isAssetsLoading } = useQuery({
     queryKey: ['assets'],
@@ -346,16 +354,16 @@ export const Reports: React.FC = () => {
             <p className="text-slate-500">Mengetahui,</p>
             <p className="font-bold text-slate-900 mt-0.5">Kepala {schoolName}</p>
             <div className="h-20" /> {/* Space for signature */}
-            <p className="font-bold text-slate-900 underline">Drs. H. Ahmad Sudirman, M.Pd.</p>
-            <p className="text-slate-500 text-[11px]">NIP. 196811121994031002</p>
+            <p className="font-bold text-slate-900 underline">{headmasterName || 'Drs. H. Ahmad Sudirman, M.Pd.'}</p>
+            <p className="text-slate-500 text-[11px]">{headmasterNip ? `NIP. ${headmasterNip}` : ''}</p>
           </div>
 
           <div>
             <p className="text-slate-500">Kabanjahe, {formatDateOnly(new Date().toISOString())}</p>
             <p className="font-bold text-slate-900 mt-0.5">Pengelola Sarana & Prasarana</p>
             <div className="h-20" /> {/* Space for signature */}
-            <p className="font-bold text-slate-900 underline">Bambang Hermawan, S.Kom.</p>
-            <p className="text-slate-500 text-[11px]">NIP. 198204152008011005</p>
+            <p className="font-bold text-slate-900 underline">{sarprasManagerName || 'Bambang Hermawan, S.Kom.'}</p>
+            <p className="text-slate-500 text-[11px]">{sarprasManagerNip ? `NIP. ${sarprasManagerNip}` : ''}</p>
           </div>
         </div>
       </div>

@@ -69,6 +69,10 @@ export interface SchoolSettings {
   phone?: string;
   email?: string;
   logoUrl?: string;
+  headmasterName?: string;
+  headmasterNip?: string;
+  sarprasManagerName?: string;
+  sarprasManagerNip?: string;
   updatedAt?: string;
   updatedBy?: string;
 }

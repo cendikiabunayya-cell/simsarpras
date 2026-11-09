@@ -19,6 +19,10 @@ export interface SchoolSettingsData {
   phone: string;
   email: string;
   logoUrl: string;
+  headmasterName?: string;
+  headmasterNip?: string;
+  sarprasManagerName?: string;
+  sarprasManagerNip?: string;
   updatedAt?: string;
   updatedBy?: string;
 }
@@ -29,6 +33,10 @@ const DEFAULT_SETTINGS: SchoolSettingsData = {
   phone: '081234567890',
   email: 'sarpras@cendikiabunayya.sch.id',
   logoUrl: '/logo-cendikia.png',
+  headmasterName: 'Drs. H. Ahmad Sudirman, M.Pd.',
+  headmasterNip: '196811121994031002',
+  sarprasManagerName: 'Bambang Hermawan, S.Kom.',
+  sarprasManagerNip: '198204152008011005',
 };
 
 /**
@@ -39,7 +47,7 @@ async function loadSettings(): Promise<SchoolSettingsData> {
   if (pool) {
     try {
       const res = await pool.query(
-        `SELECT school_name, address, phone, email, logo_url, updated_at, updated_by 
+        `SELECT school_name, address, phone, email, logo_url, headmaster_name, headmaster_nip, sarpras_manager_name, sarpras_manager_nip, updated_at, updated_by 
          FROM school_settings 
          WHERE id = 'default' 
          LIMIT 1`
@@ -52,6 +60,10 @@ async function loadSettings(): Promise<SchoolSettingsData> {
           phone: row.phone ?? DEFAULT_SETTINGS.phone,
           email: row.email ?? DEFAULT_SETTINGS.email,
           logoUrl: row.logo_url ?? '',
+          headmasterName: row.headmaster_name ?? DEFAULT_SETTINGS.headmasterName,
+          headmasterNip: row.headmaster_nip ?? DEFAULT_SETTINGS.headmasterNip,
+          sarprasManagerName: row.sarpras_manager_name ?? DEFAULT_SETTINGS.sarprasManagerName,
+          sarprasManagerNip: row.sarpras_manager_nip ?? DEFAULT_SETTINGS.sarprasManagerNip,
           updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
           updatedBy: row.updated_by ?? undefined,
         };
@@ -79,30 +91,42 @@ async function loadSettings(): Promise<SchoolSettingsData> {
  */
 async function saveSettings(data: SchoolSettingsData): Promise<void> {
   if (pool) {
-    await pool.query(
-      `INSERT INTO school_settings (id, school_name, address, phone, email, logo_url, updated_at, updated_by)
-       VALUES ('default', $1, $2, $3, $4, $5, NOW(), $6)
-       ON CONFLICT (id) DO UPDATE SET
-         school_name = EXCLUDED.school_name,
-         address = EXCLUDED.address,
-         phone = EXCLUDED.phone,
-         email = EXCLUDED.email,
-         logo_url = EXCLUDED.logo_url,
-         updated_at = NOW(),
-         updated_by = EXCLUDED.updated_by`,
-      [
-        data.schoolName,
-        data.address,
-        data.phone,
-        data.email,
-        data.logoUrl || '',
-        data.updatedBy || 'ADMIN_SARPRAS',
-      ]
-    );
-    return;
+    try {
+      await pool.query(
+        `INSERT INTO school_settings (id, school_name, address, phone, email, logo_url, headmaster_name, headmaster_nip, sarpras_manager_name, sarpras_manager_nip, updated_at, updated_by)
+         VALUES ('default', $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+         ON CONFLICT (id) DO UPDATE SET
+           school_name = EXCLUDED.school_name,
+           address = EXCLUDED.address,
+           phone = EXCLUDED.phone,
+           email = EXCLUDED.email,
+           logo_url = EXCLUDED.logo_url,
+           headmaster_name = EXCLUDED.headmaster_name,
+           headmaster_nip = EXCLUDED.headmaster_nip,
+           sarpras_manager_name = EXCLUDED.sarpras_manager_name,
+           sarpras_manager_nip = EXCLUDED.sarpras_manager_nip,
+           updated_at = NOW(),
+           updated_by = EXCLUDED.updated_by`,
+        [
+          data.schoolName,
+          data.address,
+          data.phone,
+          data.email,
+          data.logoUrl || '',
+          data.headmasterName || DEFAULT_SETTINGS.headmasterName,
+          data.headmasterNip || DEFAULT_SETTINGS.headmasterNip,
+          data.sarprasManagerName || DEFAULT_SETTINGS.sarprasManagerName,
+          data.sarprasManagerNip || DEFAULT_SETTINGS.sarprasManagerNip,
+          data.updatedBy || 'ADMIN_SARPRAS',
+        ]
+      );
+      return;
+    } catch (e: any) {
+      console.warn('[School Settings DB save error, fallback to file]:', e?.message || e);
+    }
   }
 
-  // Fallback lokal disk jika pool tidak ada
+  // Fallback lokal disk jika pool tidak ada atau DB gagal
   try {
     await fs.mkdir(SETTINGS_DIR, { recursive: true });
     await fs.writeFile(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf-8');

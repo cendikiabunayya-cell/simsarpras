@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Save,
   ShieldCheck,
+  UserCheck,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +28,10 @@ export const SchoolSettings: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [headmasterName, setHeadmasterName] = useState('');
+  const [headmasterNip, setHeadmasterNip] = useState('');
+  const [sarprasManagerName, setSarprasManagerName] = useState('');
+  const [sarprasManagerNip, setSarprasManagerNip] = useState('');
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -44,6 +49,10 @@ export const SchoolSettings: React.FC = () => {
       setPhone(settings.phone || '');
       setEmail(settings.email || '');
       setLogoUrl(settings.logoUrl || '');
+      setHeadmasterName(settings.headmasterName || 'Drs. H. Ahmad Sudirman, M.Pd.');
+      setHeadmasterNip(settings.headmasterNip || '196811121994031002');
+      setSarprasManagerName(settings.sarprasManagerName || 'Bambang Hermawan, S.Kom.');
+      setSarprasManagerNip(settings.sarprasManagerNip || '198204152008011005');
       setLogoPreviewFailed(false);
     }
   }, [settings]);
@@ -66,6 +75,10 @@ export const SchoolSettings: React.FC = () => {
         phone: phone.trim(),
         email: email.trim(),
         logoUrl: logoUrl.trim(),
+        headmasterName: headmasterName.trim(),
+        headmasterNip: headmasterNip.trim(),
+        sarprasManagerName: sarprasManagerName.trim(),
+        sarprasManagerNip: sarprasManagerNip.trim(),
       });
     },
     onSuccess: (updated) => {
@@ -239,6 +252,90 @@ export const SchoolSettings: React.FC = () => {
                 </p>
               </div>
 
+              {/* Bagian Pejabat Penandatangan Laporan */}
+              <div className="pt-4 border-t border-slate-200 space-y-4">
+                <div className="flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-emerald-600" />
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                    Pejabat Penandatangan Laporan (Pengesahan)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-slate-500 -mt-2">
+                  Pejabat ini akan otomatis tercantum pada bagian tanda tangan bawah di semua lembar cetak Laporan & Rekapitulasi Sarpras.
+                </p>
+
+                {/* Grid Kepala Madrasah & Pengelola Sarpras */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Kepala Madrasah */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-blue-600" />
+                      Kepala Madrasah
+                    </span>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Nama Lengkap Kepala Madrasah
+                      </label>
+                      <input
+                        type="text"
+                        disabled={!canEdit || isLoading}
+                        value={headmasterName}
+                        onChange={(e) => setHeadmasterName(e.target.value)}
+                        placeholder="Contoh: Drs. H. Ahmad Sudirman, M.Pd."
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 disabled:bg-slate-100 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        NIP / Identitas Pegawai
+                      </label>
+                      <input
+                        type="text"
+                        disabled={!canEdit || isLoading}
+                        value={headmasterNip}
+                        onChange={(e) => setHeadmasterNip(e.target.value)}
+                        placeholder="Contoh: 196811121994031002"
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 disabled:bg-slate-100 transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pengelola Sarana & Prasarana */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                      Pengelola Sarana & Prasarana
+                    </span>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Nama Lengkap Pengelola Sarpras
+                      </label>
+                      <input
+                        type="text"
+                        disabled={!canEdit || isLoading}
+                        value={sarprasManagerName}
+                        onChange={(e) => setSarprasManagerName(e.target.value)}
+                        placeholder="Contoh: Bambang Hermawan, S.Kom."
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 disabled:bg-slate-100 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        NIP / Identitas Pegawai
+                      </label>
+                      <input
+                        type="text"
+                        disabled={!canEdit || isLoading}
+                        value={sarprasManagerNip}
+                        onChange={(e) => setSarprasManagerNip(e.target.value)}
+                        placeholder="Contoh: 198204152008011005"
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 disabled:bg-slate-100 transition"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {canEdit && (
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
                   <Button
@@ -324,6 +421,22 @@ export const SchoolSettings: React.FC = () => {
                         {email}
                       </span>
                     )}
+                  </div>
+                </div>
+
+                {/* Pratinjau Pejabat Penandatangan Laporan */}
+                <div className="pt-1 grid grid-cols-2 gap-2 text-center text-[10px]">
+                  <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
+                    <p className="text-slate-400 font-medium text-[9px]">Kepala Madrasah</p>
+                    <div className="h-4" />
+                    <p className="font-bold text-slate-800 underline truncate">{headmasterName || 'Drs. H. Ahmad Sudirman, M.Pd.'}</p>
+                    <p className="text-slate-500 text-[9px]">{headmasterNip ? `NIP. ${headmasterNip}` : '-'}</p>
+                  </div>
+                  <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
+                    <p className="text-slate-400 font-medium text-[9px]">Pengelola Sarpras</p>
+                    <div className="h-4" />
+                    <p className="font-bold text-slate-800 underline truncate">{sarprasManagerName || 'Bambang Hermawan, S.Kom.'}</p>
+                    <p className="text-slate-500 text-[9px]">{sarprasManagerNip ? `NIP. ${sarprasManagerNip}` : '-'}</p>
                   </div>
                 </div>
               </div>
