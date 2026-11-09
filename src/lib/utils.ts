@@ -168,9 +168,12 @@ export function getCategoryAndItemNumber(item?: {
   const num = (item.itemNumber && String(item.itemNumber).trim()) || '';
   if (!num) return '';
 
+  // Format angka jika murni 1 digit agar seragam minimal 2 digit (misal: '1' -> '01')
+  const formattedNum = /^\d+$/.test(num) && num.length === 1 ? num.padStart(2, '0') : num;
+
   // Jika sudah memuat huruf/nama kategori (misal: "Laptop 22"), langsung gunakan
-  if (/[a-zA-Z]/.test(num)) {
-    return num;
+  if (/[a-zA-Z]/.test(formattedNum)) {
+    return formattedNum;
   }
 
   // Tentukan label kategori atau deteksi dari nama barang
@@ -185,5 +188,5 @@ export function getCategoryAndItemNumber(item?: {
     else if (itemLower.includes('speaker') || itemLower.includes('sound')) cat = 'Speaker';
   }
 
-  return cat ? `${cat} ${num}` : `No: ${num}`;
+  return cat ? `${cat} ${formattedNum}` : `No: ${formattedNum}`;
 }

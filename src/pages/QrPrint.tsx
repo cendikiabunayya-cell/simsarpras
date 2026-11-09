@@ -23,6 +23,7 @@ import { Button } from '../components/ui/Button';
 import { TableSkeleton } from '../components/ui/LoadingSkeleton';
 import { Barcode1D } from '../components/ui/Barcode1D';
 import { SCHOOL_UNITS } from '../types';
+import { getCategoryAndItemNumber } from '../lib/utils';
 import {
   getCanonicalQrUrl,
   getEffectiveBaseUrl,
@@ -385,18 +386,7 @@ export const QrPrint: React.FC = () => {
     }
   };
 
-  // Helper title case untuk label kategori
-  const toCategoryTitleCase = (str: string): string => {
-    if (!str) return '';
-    if (str.toUpperCase() === 'TIK' || str.toUpperCase() === 'PC') return str.toUpperCase();
-    return str
-      .toLowerCase()
-      .split(/\s+/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-  };
-
-  // Helper kombinasi kategori + nomor barang (misal: "Laptop 01") sesuai instruksi sketsa label
+  // Helper kombinasi kategori + nomor barang (misal: "Laptop 22") sesuai data inventaris
   const getCombinedCategoryAndNumber = (asset: {
     id?: string;
     itemNumber?: string | null;
@@ -404,52 +394,7 @@ export const QrPrint: React.FC = () => {
     itemName?: string;
     assetCode?: string;
   }): string => {
-    // 1. Tentukan nomor barang
-    let num = (asset.itemNumber && String(asset.itemNumber).trim()) || '';
-
-    // Jika belum diisi nomor barang, cari nomor urut otomatis berdasarkan urutan barang sejenis
-    if (!num && assets && asset.id) {
-      const sameCategory = assets.filter(
-        (a) => (a.categoryName || 'Umum') === (asset.categoryName || 'Umum')
-      );
-      const idx = sameCategory.findIndex((a) => a.id === asset.id);
-      if (idx !== -1) {
-        num = String(idx + 1).padStart(2, '0');
-      } else {
-        const match = (asset.assetCode || '').match(/(\d{1,3})$/);
-        num = match ? match[1].padStart(2, '0') : '01';
-      }
-    }
-
-    if (!num) num = '01';
-
-    // Format angka jika murni digit agar rapi minimal 2 digit (misal: '1' -> '01')
-    if (/^\d+$/.test(num)) {
-      num = num.padStart(2, '0');
-    }
-
-    // Jika pengguna sudah mengetikkan teks kombinasi lengkap (misal: "Laptop 01"), langsung gunakan
-    if (/[a-zA-Z]/.test(num)) {
-      return num;
-    }
-
-    // 2. Tentukan label kategori
-    let cat = (asset.categoryName || '').trim();
-    const itemLower = (asset.itemName || '').toLowerCase();
-
-    // Jika kategori berupa format gabungan seperti "TIK/Multimedia", ambil kata kunci nama barang agar presisi
-    if (cat.includes('/') || cat.toLowerCase() === 'umum' || !cat) {
-      if (itemLower.includes('laptop')) cat = 'Laptop';
-      else if (itemLower.includes('proyektor') || itemLower.includes('projector') || itemLower.includes('infocus')) cat = 'Infocus';
-      else if (itemLower.includes('kamera') || itemLower.includes('camera')) cat = 'Kamera';
-      else if (itemLower.includes('komputer') || itemLower.includes('pc')) cat = 'PC';
-      else if (itemLower.includes('printer')) cat = 'Printer';
-      else if (itemLower.includes('speaker') || itemLower.includes('sound')) cat = 'Speaker';
-      else if (cat.includes('/')) cat = cat.split('/')[0].trim();
-    }
-
-    const formattedCat = toCategoryTitleCase(cat);
-    return formattedCat ? `${formattedCat} ${num}` : `Barang ${num}`;
+    return getCategoryAndItemNumber(asset);
   };
 
   // Preselect if query param provided
@@ -707,6 +652,11 @@ export const QrPrint: React.FC = () => {
                             <span className="text-xs font-bold text-slate-900">
                               {asset.assetCode} — {asset.itemName}
                             </span>
+                            {getCategoryAndItemNumber(asset) && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-900 border border-amber-300">
+                                {getCategoryAndItemNumber(asset)}
+                              </span>
+                            )}
                             <span
                               className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${
                                 asset.institution === 'RA Cendikia Bunayya'
