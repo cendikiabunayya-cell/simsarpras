@@ -84,12 +84,14 @@ export const Reports: React.FC = () => {
     if (reportType === 'inventory' || reportType === 'maintenance') {
       csvContent += 'Kode Inventaris,Nama Barang,Kategori,Spesifikasi/Ukuran,Merek,Tahun,Sumber Pendanaan,Ruangan,Kondisi,Status\n';
       filteredAssets?.forEach((a) => {
-        csvContent += `"${a.assetCode}","${a.itemName}","${a.categoryName}","${(a.technicalSpecs || '').replace(/"/g, '""')}","${a.itemBrand}","${a.acquisitionYear || ''}","${a.fundingSource}","${a.locationName}","${a.conditionStatus}","${a.operationalStatus}"\n`;
+        const codeDisplay = getCategoryAndItemNumber(a) ? `${a.assetCode} (${getCategoryAndItemNumber(a)})` : a.assetCode;
+        csvContent += `"${codeDisplay}","${a.itemName}","${a.categoryName}","${(a.technicalSpecs || '').replace(/"/g, '""')}","${a.itemBrand}","${a.acquisitionYear || ''}","${a.fundingSource}","${a.locationName}","${a.conditionStatus}","${a.operationalStatus}"\n`;
       });
     } else {
       csvContent += 'No Transaksi,Peminjam,NIP,Barang,Kode Unit,Status,Tanggal Pinjam,Jatuh Tempo,Keperluan\n';
       filteredLoans?.forEach((l) => {
-        csvContent += `"${l.loanNumber}","${l.borrowerName}","${l.borrowerEmployeeNumber}","${l.unit.itemName}","${l.unit.assetCode}","${l.status}","${l.requestedAt}","${l.expectedReturnAt}","${l.purpose.replace(/"/g, '""')}"\n`;
+        const unitCodeDisplay = getCategoryAndItemNumber(l.unit) ? `${l.unit.assetCode} (${getCategoryAndItemNumber(l.unit)})` : l.unit.assetCode;
+        csvContent += `"${l.loanNumber}","${l.borrowerName}","${l.borrowerEmployeeNumber}","${l.unit.itemName}","${unitCodeDisplay}","${l.status}","${l.requestedAt}","${l.expectedReturnAt}","${l.purpose.replace(/"/g, '""')}"\n`;
       });
     }
 
@@ -293,13 +295,18 @@ export const Reports: React.FC = () => {
                     return (
                       <tr key={asset.id} className="hover:bg-slate-50">
                         <td className="p-2.5 border-r border-slate-200 text-center font-mono">{index + 1}</td>
-                        <td className="p-2.5 border-r border-slate-200 font-mono font-bold">{asset.assetCode}</td>
-                        <td className="p-2.5 border-r border-slate-200 font-medium">
-                          {asset.itemName}{' '}
+                        <td className="p-2.5 border-r border-slate-200">
+                          <div className="font-mono font-bold text-slate-900 leading-tight">
+                            {asset.assetCode}
+                          </div>
                           {getCategoryAndItemNumber(asset) ? (
-                            <span className="font-bold text-blue-800">[{getCategoryAndItemNumber(asset)}] </span>
+                            <div className="font-sans font-bold text-blue-900 text-[11px] leading-tight mt-0.5">
+                              {getCategoryAndItemNumber(asset)}
+                            </div>
                           ) : null}
-                          <span className="text-slate-500 font-normal">({asset.itemBrand})</span>
+                        </td>
+                        <td className="p-2.5 border-r border-slate-200 font-medium">
+                          {asset.itemName} <span className="text-slate-500 font-normal">({asset.itemBrand})</span>
                         </td>
                         <td className="p-2.5 border-r border-slate-200">{asset.categoryName}</td>
                         <td className="p-2.5 border-r border-slate-200 text-slate-600 max-w-xs">{asset.technicalSpecs}</td>
@@ -337,12 +344,18 @@ export const Reports: React.FC = () => {
                         <td className="p-2.5 border-r border-slate-200">
                           {loan.borrowerName} ({loan.borrowerEmployeeNumber})
                         </td>
-                        <td className="p-2.5 border-r border-slate-200 font-medium">
-                          {loan.unit.itemName}{' '}
-                          {getCategoryAndItemNumber(loan.unit) ? (
-                            <span className="font-bold text-blue-800">[{getCategoryAndItemNumber(loan.unit)}] </span>
-                          ) : null}
-                          ({loan.unit.assetCode})
+                        <td className="p-2.5 border-r border-slate-200">
+                          <div className="font-medium text-slate-900 leading-tight">
+                            {loan.unit.itemName}
+                          </div>
+                          <div className="text-[11px] font-mono text-slate-600 mt-0.5">
+                            <span className="font-bold text-slate-900">{loan.unit.assetCode}</span>
+                            {getCategoryAndItemNumber(loan.unit) ? (
+                              <span className="font-sans font-bold text-blue-900 ml-1.5">
+                                • {getCategoryAndItemNumber(loan.unit)}
+                              </span>
+                            ) : null}
+                          </div>
                         </td>
                         <td className="p-2.5 border-r border-slate-200">{formatDateOnly(loan.requestedAt)}</td>
                         <td className="p-2.5 border-r border-slate-200">{formatDateOnly(loan.expectedReturnAt)}</td>
