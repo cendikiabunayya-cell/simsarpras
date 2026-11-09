@@ -48,6 +48,7 @@ export const LoanApproval: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
     },
   });
 
@@ -63,6 +64,7 @@ export const LoanApproval: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setRejectingLoan(null);
       setRejectionReason('');
     },

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { pool } from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { schoolSettingsSchema } from '../validators.js';
+import { logAudit } from '../utils/auditLogger.js';
 
 export const schoolSettingsRouter = Router();
 
@@ -181,6 +182,20 @@ async function handleUpdateSettings(req: Request, res: Response) {
     };
 
     await saveSettings(updated);
+
+    // Catat audit log pembaruan identitas madrasah & pejabat
+    await logAudit({
+      userId: currentUser?.id,
+      userName: currentUser?.fullName || currentUser?.email || 'Admin Sarpras',
+      userRole: currentUser?.role || 'ADMIN_SARPRAS',
+      action: 'UBAH_PENGATURAN_SEKOLAH',
+      entityType: 'SCHOOL_SETTINGS',
+      entityId: 'default',
+      entityName: updated.schoolName,
+      details: `Memperbarui profil lembaga & pejabat: ${updated.schoolName} | Kepala: ${updated.headmasterName || '-'} | Pengelola: ${updated.sarprasManagerName || '-'}`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json(updated);
   } catch (error: any) {
     console.error('[School Settings Write Error]:', error?.message || error);

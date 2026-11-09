@@ -55,6 +55,7 @@ export const ReturnVerification: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setSelectedLoanForVerification(null);
       setVerificationNotes('');
       setSuccessMessage(

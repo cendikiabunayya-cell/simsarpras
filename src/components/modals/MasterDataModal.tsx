@@ -69,6 +69,7 @@ export const MasterDataModal: React.FC<MasterDataModalProps> = ({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['funding-sources'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setFundingName('');
       setFundingDesc('');
       showSuccess(`Sumber pendanaan "${data.name}" berhasil ditambahkan.`);
@@ -82,6 +83,7 @@ export const MasterDataModal: React.FC<MasterDataModalProps> = ({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setLocationName('');
       setLocationCode('');
       setLocationDesc('');
@@ -96,6 +98,7 @@ export const MasterDataModal: React.FC<MasterDataModalProps> = ({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setCategoryName('');
       setCategoryDesc('');
       showSuccess(`Kategori "${data.name}" berhasil ditambahkan.`);

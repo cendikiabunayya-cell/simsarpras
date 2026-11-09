@@ -470,6 +470,32 @@ data: ${eventMessage}
 };
 var sseManager = SSEManager.getInstance();
 
+// server/src/utils/auditLogger.ts
+async function logAudit(params) {
+  if (!pool) return;
+  try {
+    const id = `audit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    await pool.query(
+      `INSERT INTO audit_logs (id, user_id, user_name, user_role, action, entity_type, entity_id, entity_name, details, ip_address, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+      [
+        id,
+        params.userId || "system",
+        params.userName || "Sistem / Pengguna",
+        params.userRole || "USER",
+        params.action,
+        params.entityType,
+        params.entityId,
+        params.entityName || null,
+        params.details,
+        params.ipAddress || null
+      ]
+    );
+  } catch (error) {
+    console.warn("[Audit Log Write Warning]:", error?.message || error);
+  }
+}
+
 // server/src/routes/assets.ts
 var assetsRouter = Router2();
 var publicScanLimiter = createRateLimiter({
@@ -891,6 +917,17 @@ assetsRouter.post("/", requireAuth, requireRole("ADMIN_SARPRAS"), async (req, re
       assetId: id,
       status: data.operationalStatus || "AVAILABLE"
     });
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "TAMBAH_BARANG",
+      entityType: "ASSET",
+      entityId: id,
+      entityName: data.itemName,
+      details: `Menambahkan barang baru: "${data.itemName}" (${assetCode}) pada lokasi ${locationName}`,
+      ipAddress: req.ip
+    });
     return res.status(201).json(formatAssetResponse(createdRow));
   } catch (error) {
     console.error("[Asset Creation Error]:", error?.message || error);
@@ -1039,6 +1076,17 @@ assetsRouter.patch("/:id", requireAuth, requireRole("ADMIN_SARPRAS"), async (req
         status: formatted.operationalStatus
       });
     }
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "UBAH_BARANG",
+      entityType: "ASSET",
+      entityId: formatted.id,
+      entityName: formatted.itemName,
+      details: `Memperbarui data barang: "${formatted.itemName}" (${formatted.assetCode})${data.itemNumber ? ` [No: ${data.itemNumber}]` : ""}${data.locationId ? ` ke lokasi ${formatted.locationName}` : ""}`,
+      ipAddress: req.ip
+    });
     return res.status(200).json(formatted);
   } catch (error) {
     console.error("[Asset Update Error]:", error?.message || error);
@@ -1393,6 +1441,17 @@ async function handleLoanSubmission(req, res) {
       status: nextUnitStatus
     });
     const formattedLoan = formatLoanResponse(loanInsertRes.rows[0], asset);
+    await logAudit({
+      userId: req.user?.id || borrowerId,
+      userName: borrowerName,
+      userRole: req.user?.role || "GURU",
+      action: isDirect ? "PINJAM_LANGSUNG" : "PENGAJUAN_PINJAM",
+      entityType: "LOAN",
+      entityId: loanId,
+      entityName: asset.item_name,
+      details: `${isDirect ? "Peminjaman mandiri langsung aktif" : "Pengajuan peminjaman baru"}: "${asset.item_name}" (${asset.asset_code}) oleh ${borrowerName} untuk keperluan ${purpose}`,
+      ipAddress: req.ip
+    });
     return res.status(201).json({
       ...formattedLoan,
       loan: formattedLoan,
@@ -1567,6 +1626,17 @@ loansRouter.post("/:id/approve", requireAuth, requireRole("ADMIN_SARPRAS"), asyn
       assetId: currentLoan.asset_id,
       status: "ON_LOAN"
     });
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "SETUJUI_PINJAM",
+      entityType: "LOAN",
+      entityId: currentLoan.id,
+      entityName: currentLoan.item_name,
+      details: `Menyetujui peminjaman: "${currentLoan.item_name}" (${currentLoan.asset_code}) untuk ${currentLoan.borrower_name}`,
+      ipAddress: req.ip
+    });
     return res.status(200).json(formatted);
   } catch (error) {
     await client.query("ROLLBACK");
@@ -1645,6 +1715,17 @@ loansRouter.post("/:id/reject", requireAuth, requireRole("ADMIN_SARPRAS"), async
       assetId: currentLoan.asset_id,
       status: "AVAILABLE"
     });
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "TOLAK_PINJAM",
+      entityType: "LOAN",
+      entityId: currentLoan.id,
+      entityName: currentLoan.item_name,
+      details: `Menolak permohonan pinjam: "${currentLoan.item_name}" (${currentLoan.asset_code}) untuk ${currentLoan.borrower_name} \u2014 Alasan: ${reason.trim()}`,
+      ipAddress: req.ip
+    });
     return res.status(200).json(formatted);
   } catch (error) {
     await client.query("ROLLBACK");
@@ -1711,6 +1792,17 @@ loansRouter.post("/:id/handover", requireAuth, requireRole("ADMIN_SARPRAS"), asy
     sseManager.broadcast("asset.availability_changed", {
       assetId: currentLoan.asset_id,
       status: "ON_LOAN"
+    });
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "SERAH_TERIMA_BARANG",
+      entityType: "LOAN",
+      entityId: currentLoan.id,
+      entityName: currentLoan.item_name,
+      details: `Menyerahkan fisik barang: "${currentLoan.item_name}" (${currentLoan.asset_code}) kepada ${currentLoan.borrower_name}`,
+      ipAddress: req.ip
     });
     return res.status(200).json(formatted);
   } catch (error) {
@@ -1998,6 +2090,17 @@ usersRouter.post("/", async (req, res) => {
       isActive ?? true
     ]);
     const createdUser = formatUserResponse(result.rows[0]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "TAMBAH_PENGGUNA",
+      entityType: "USER",
+      entityId: newId,
+      entityName: fullName,
+      details: `Menambahkan akun pengguna baru: ${fullName} (${email}) dengan peran ${role}`,
+      ipAddress: req.ip
+    });
     return res.status(201).json({
       success: true,
       message: "Akun pengguna berhasil ditambahkan.",
@@ -2127,6 +2230,17 @@ usersRouter.patch("/:id", async (req, res) => {
     `;
     const result = await pool.query(updateQuery, params);
     const updatedUser = formatUserResponse(result.rows[0]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "UBAH_PENGGUNA",
+      entityType: "USER",
+      entityId: targetId,
+      entityName: updatedUser.fullName,
+      details: `Memperbarui akun pengguna: ${updatedUser.fullName} (${updatedUser.email})`,
+      ipAddress: req.ip
+    });
     return res.status(200).json({
       success: true,
       message: "Data pengguna berhasil diperbarui.",
@@ -2207,6 +2321,17 @@ usersRouter.patch("/:id/status", async (req, res) => {
     `;
     const result = await pool.query(updateQuery, [isActive, targetId]);
     const updatedUser = formatUserResponse(result.rows[0]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: isActive ? "AKTIFKAN_PENGGUNA" : "NONAKTIFKAN_PENGGUNA",
+      entityType: "USER",
+      entityId: targetId,
+      entityName: updatedUser.fullName,
+      details: `${isActive ? "Mengaktifkan kembali" : "Menonaktifkan"} akun pengguna: ${updatedUser.fullName} (${updatedUser.email})`,
+      ipAddress: req.ip
+    });
     return res.status(200).json({
       success: true,
       message: isActive ? "Akun pengguna berhasil diaktifkan kembali." : "Akun pengguna berhasil dinonaktifkan.",
@@ -2410,6 +2535,17 @@ locationsRouter.post("/", requireAuth, requireRole("ADMIN_SARPRAS"), async (req,
       description || null,
       isActive ?? true
     ]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "TAMBAH_LOKASI",
+      entityType: "LOCATION",
+      entityId: newId,
+      entityName: name,
+      details: `Menambahkan ruangan/lokasi baru: "${name}" (${finalCode})`,
+      ipAddress: req.ip
+    });
     return res.status(201).json(formatLocation(result.rows[0]));
   } catch (error) {
     console.error("[Location Creation Error]:", error?.message || error);
@@ -2507,6 +2643,17 @@ locationsRouter.patch("/:id", requireAuth, requireRole("ADMIN_SARPRAS"), async (
         targetId
       ]);
     }
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "UBAH_LOKASI",
+      entityType: "LOCATION",
+      entityId: targetId,
+      entityName: data.name || current.name,
+      details: `Memperbarui data ruangan/lokasi: "${data.name || current.name}" (${data.code || current.code})`,
+      ipAddress: req.ip
+    });
     return res.status(200).json(formatLocation(result.rows[0]));
   } catch (error) {
     console.error("[Location Update Error]:", error?.message || error);
@@ -2544,6 +2691,17 @@ locationsRouter.delete("/:id", requireAuth, requireRole("ADMIN_SARPRAS"), async 
       });
     }
     await pool.query("DELETE FROM locations WHERE id = $1", [targetId]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "HAPUS_LOKASI",
+      entityType: "LOCATION",
+      entityId: targetId,
+      entityName: existing.rows[0].name,
+      details: `Menghapus ruangan/lokasi: "${existing.rows[0].name}" (${existing.rows[0].code})`,
+      ipAddress: req.ip
+    });
     return res.status(200).json({
       success: true,
       message: `Ruangan "${existing.rows[0].name}" berhasil dihapus.`
@@ -2646,6 +2804,17 @@ categoriesRouter.post("/", requireAuth, requireRole("ADMIN_SARPRAS"), async (req
       description || null,
       isActive ?? true
     ]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "TAMBAH_KATEGORI",
+      entityType: "CATEGORY",
+      entityId: newId,
+      entityName: name,
+      details: `Menambahkan kategori baru: "${name}" (Mode: ${defaultLoanMode || "DIRECT"})`,
+      ipAddress: req.ip
+    });
     return res.status(201).json(formatCategory(result.rows[0]));
   } catch (error) {
     console.error("[Category Creation Error]:", error?.message || error);
@@ -2731,6 +2900,17 @@ categoriesRouter.patch("/:id", requireAuth, requireRole("ADMIN_SARPRAS"), async 
         targetId
       ]);
     }
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "UBAH_KATEGORI",
+      entityType: "CATEGORY",
+      entityId: targetId,
+      entityName: data.name || current.name,
+      details: `Memperbarui data kategori: "${data.name || current.name}"`,
+      ipAddress: req.ip
+    });
     return res.status(200).json(formatCategory(result.rows[0]));
   } catch (error) {
     console.error("[Category Update Error]:", error?.message || error);
@@ -2768,6 +2948,17 @@ categoriesRouter.delete("/:id", requireAuth, requireRole("ADMIN_SARPRAS"), async
       });
     }
     await pool.query("DELETE FROM categories WHERE id = $1", [targetId]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "HAPUS_KATEGORI",
+      entityType: "CATEGORY",
+      entityId: targetId,
+      entityName: existing.rows[0].name,
+      details: `Menghapus kategori: "${existing.rows[0].name}"`,
+      ipAddress: req.ip
+    });
     return res.status(200).json({
       success: true,
       message: `Kategori "${existing.rows[0].name}" berhasil dihapus.`
@@ -2868,6 +3059,17 @@ fundingSourcesRouter.post("/", requireAuth, requireRole("ADMIN_SARPRAS"), async 
       description || null,
       isActive ?? true
     ]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "TAMBAH_SUMBER_DANA",
+      entityType: "FUNDING_SOURCE",
+      entityId: newId,
+      entityName: name,
+      details: `Menambahkan sumber pendanaan baru: "${name}"`,
+      ipAddress: req.ip
+    });
     return res.status(201).json(formatFundingSource(result.rows[0]));
   } catch (error) {
     console.error("[Funding Source Creation Error]:", error?.message || error);
@@ -2949,6 +3151,17 @@ fundingSourcesRouter.patch("/:id", requireAuth, requireRole("ADMIN_SARPRAS"), as
         current.name
       ]);
     }
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "UBAH_SUMBER_DANA",
+      entityType: "FUNDING_SOURCE",
+      entityId: targetId,
+      entityName: data.name || current.name,
+      details: `Memperbarui data sumber pendanaan: "${data.name || current.name}"`,
+      ipAddress: req.ip
+    });
     return res.status(200).json(formatFundingSource(result.rows[0]));
   } catch (error) {
     console.error("[Funding Source Update Error]:", error?.message || error);
@@ -2987,6 +3200,17 @@ fundingSourcesRouter.delete("/:id", requireAuth, requireRole("ADMIN_SARPRAS"), a
       });
     }
     await pool.query("DELETE FROM funding_sources WHERE id = $1", [targetId]);
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || "Admin Sarpras",
+      userRole: req.user?.role || "ADMIN_SARPRAS",
+      action: "HAPUS_SUMBER_DANA",
+      entityType: "FUNDING_SOURCE",
+      entityId: targetId,
+      entityName: currentName,
+      details: `Menghapus sumber pendanaan: "${currentName}"`,
+      ipAddress: req.ip
+    });
     return res.status(200).json({
       success: true,
       message: `Sumber pendanaan "${currentName}" berhasil dihapus.`
@@ -3144,6 +3368,17 @@ async function handleUpdateSettings(req, res) {
       updatedBy: currentUser?.fullName || currentUser?.email || "ADMIN_SARPRAS"
     };
     await saveSettings(updated);
+    await logAudit({
+      userId: currentUser?.id,
+      userName: currentUser?.fullName || currentUser?.email || "Admin Sarpras",
+      userRole: currentUser?.role || "ADMIN_SARPRAS",
+      action: "UBAH_PENGATURAN_SEKOLAH",
+      entityType: "SCHOOL_SETTINGS",
+      entityId: "default",
+      entityName: updated.schoolName,
+      details: `Memperbarui profil lembaga & pejabat: ${updated.schoolName} | Kepala: ${updated.headmasterName || "-"} | Pengelola: ${updated.sarprasManagerName || "-"}`,
+      ipAddress: req.ip
+    });
     return res.status(200).json(updated);
   } catch (error) {
     console.error("[School Settings Write Error]:", error?.message || error);

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { pool } from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { fundingSourceSchema, updateFundingSourceSchema } from '../validators.js';
+import { logAudit } from '../utils/auditLogger.js';
 
 export const fundingSourcesRouter = Router();
 
@@ -103,6 +104,18 @@ fundingSourcesRouter.post('/', requireAuth, requireRole('ADMIN_SARPRAS'), async 
       isActive ?? true,
     ]);
 
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'TAMBAH_SUMBER_DANA',
+      entityType: 'FUNDING_SOURCE',
+      entityId: newId,
+      entityName: name,
+      details: `Menambahkan sumber pendanaan baru: "${name}"`,
+      ipAddress: req.ip,
+    });
+
     return res.status(201).json(formatFundingSource(result.rows[0]));
   } catch (error: any) {
     console.error('[Funding Source Creation Error]:', error?.message || error);
@@ -201,6 +214,18 @@ fundingSourcesRouter.patch('/:id', requireAuth, requireRole('ADMIN_SARPRAS'), as
       ]);
     }
 
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'UBAH_SUMBER_DANA',
+      entityType: 'FUNDING_SOURCE',
+      entityId: targetId,
+      entityName: data.name || current.name,
+      details: `Memperbarui data sumber pendanaan: "${data.name || current.name}"`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json(formatFundingSource(result.rows[0]));
   } catch (error: any) {
     console.error('[Funding Source Update Error]:', error?.message || error);
@@ -250,6 +275,19 @@ fundingSourcesRouter.delete('/:id', requireAuth, requireRole('ADMIN_SARPRAS'), a
     }
 
     await pool.query('DELETE FROM funding_sources WHERE id = $1', [targetId]);
+
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'HAPUS_SUMBER_DANA',
+      entityType: 'FUNDING_SOURCE',
+      entityId: targetId,
+      entityName: currentName,
+      details: `Menghapus sumber pendanaan: "${currentName}"`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json({
       success: true,
       message: `Sumber pendanaan "${currentName}" berhasil dihapus.`,

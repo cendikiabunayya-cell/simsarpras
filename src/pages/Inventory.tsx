@@ -142,6 +142,7 @@ export const Inventory: React.FC = () => {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setDeleteSuccessMessage(res.message);
       setDeletingAsset(null);
       setDeleteReason('');
@@ -311,6 +312,7 @@ export const Inventory: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setIsAddModalOpen(false);
       resetAddForm();
     },
@@ -351,6 +353,7 @@ export const Inventory: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       const modeText =
         res.loanModeSnapshot === 'DIRECT'
           ? 'Mode DIRECT: Peminjaman langsung berstatus AKTIF.'

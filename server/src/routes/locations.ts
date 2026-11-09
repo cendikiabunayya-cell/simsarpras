@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { pool } from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { locationSchema, updateLocationSchema } from '../validators.js';
+import { logAudit } from '../utils/auditLogger.js';
 
 export const locationsRouter = Router();
 
@@ -123,6 +124,18 @@ locationsRouter.post('/', requireAuth, requireRole('ADMIN_SARPRAS'), async (req:
       isActive ?? true,
     ]);
 
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'TAMBAH_LOKASI',
+      entityType: 'LOCATION',
+      entityId: newId,
+      entityName: name,
+      details: `Menambahkan ruangan/lokasi baru: "${name}" (${finalCode})`,
+      ipAddress: req.ip,
+    });
+
     return res.status(201).json(formatLocation(result.rows[0]));
   } catch (error: any) {
     console.error('[Location Creation Error]:', error?.message || error);
@@ -239,6 +252,18 @@ locationsRouter.patch('/:id', requireAuth, requireRole('ADMIN_SARPRAS'), async (
       ]);
     }
 
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'UBAH_LOKASI',
+      entityType: 'LOCATION',
+      entityId: targetId,
+      entityName: data.name || current.name,
+      details: `Memperbarui data ruangan/lokasi: "${data.name || current.name}" (${data.code || current.code})`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json(formatLocation(result.rows[0]));
   } catch (error: any) {
     console.error('[Location Update Error]:', error?.message || error);
@@ -286,6 +311,19 @@ locationsRouter.delete('/:id', requireAuth, requireRole('ADMIN_SARPRAS'), async 
     }
 
     await pool.query('DELETE FROM locations WHERE id = $1', [targetId]);
+
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'HAPUS_LOKASI',
+      entityType: 'LOCATION',
+      entityId: targetId,
+      entityName: existing.rows[0].name,
+      details: `Menghapus ruangan/lokasi: "${existing.rows[0].name}" (${existing.rows[0].code})`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json({
       success: true,
       message: `Ruangan "${existing.rows[0].name}" berhasil dihapus.`,

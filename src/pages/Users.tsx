@@ -97,6 +97,7 @@ export const Users: React.FC = () => {
     mutationFn: (payload: typeof createFormData) => api.createUser(payload),
     onSuccess: (newUser) => {
       queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setIsCreateModalOpen(false);
       setCreateFormData({
         fullName: '',
@@ -126,6 +127,7 @@ export const Users: React.FC = () => {
       api.updateUser(id, payload),
     onSuccess: (updatedUser) => {
       queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setIsEditModalOpen(false);
       setSelectedUser(null);
       setNotification({
@@ -147,6 +149,7 @@ export const Users: React.FC = () => {
       api.updateUserStatus(id, isActive),
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setIsStatusModalOpen(false);
       setTargetStatusUser(null);
       setNotification({
@@ -169,6 +172,7 @@ export const Users: React.FC = () => {
     mutationFn: (userId: string) => api.deleteUser(userId),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setIsDeleteModalOpen(false);
       setTargetDeleteUser(null);
       setNotification({

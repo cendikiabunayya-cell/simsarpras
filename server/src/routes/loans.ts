@@ -5,6 +5,7 @@ import { createRateLimiter } from '../middleware/rateLimiter.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { formatAssetResponse } from './assets.js';
 import { sseManager } from '../realtime/sseManager.js';
+import { logAudit } from '../utils/auditLogger.js';
 
 export const loansRouter = Router();
 
@@ -187,6 +188,19 @@ async function handleLoanSubmission(req: Request, res: Response) {
     });
 
     const formattedLoan = formatLoanResponse(loanInsertRes.rows[0], asset);
+
+    // Catat audit log pengajuan/peminjaman
+    await logAudit({
+      userId: req.user?.id || borrowerId,
+      userName: borrowerName,
+      userRole: req.user?.role || 'GURU',
+      action: isDirect ? 'PINJAM_LANGSUNG' : 'PENGAJUAN_PINJAM',
+      entityType: 'LOAN',
+      entityId: loanId,
+      entityName: asset.item_name,
+      details: `${isDirect ? 'Peminjaman mandiri langsung aktif' : 'Pengajuan peminjaman baru'}: "${asset.item_name}" (${asset.asset_code}) oleh ${borrowerName} untuk keperluan ${purpose}`,
+      ipAddress: req.ip,
+    });
 
     return res.status(201).json({
       ...formattedLoan,
@@ -397,6 +411,19 @@ loansRouter.post('/:id/approve', requireAuth, requireRole('ADMIN_SARPRAS'), asyn
       status: 'ON_LOAN',
     });
 
+    // Catat audit log persetujuan peminjaman
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'SETUJUI_PINJAM',
+      entityType: 'LOAN',
+      entityId: currentLoan.id,
+      entityName: currentLoan.item_name,
+      details: `Menyetujui peminjaman: "${currentLoan.item_name}" (${currentLoan.asset_code}) untuk ${currentLoan.borrower_name}`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json(formatted);
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -494,6 +521,19 @@ loansRouter.post('/:id/reject', requireAuth, requireRole('ADMIN_SARPRAS'), async
       status: 'AVAILABLE',
     });
 
+    // Catat audit log penolakan peminjaman
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'TOLAK_PINJAM',
+      entityType: 'LOAN',
+      entityId: currentLoan.id,
+      entityName: currentLoan.item_name,
+      details: `Menolak permohonan pinjam: "${currentLoan.item_name}" (${currentLoan.asset_code}) untuk ${currentLoan.borrower_name} — Alasan: ${reason.trim()}`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json(formatted);
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -572,6 +612,19 @@ loansRouter.post('/:id/handover', requireAuth, requireRole('ADMIN_SARPRAS'), asy
     sseManager.broadcast('asset.availability_changed', {
       assetId: currentLoan.asset_id,
       status: 'ON_LOAN',
+    });
+
+    // Catat audit log serah terima barang fisik
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'SERAH_TERIMA_BARANG',
+      entityType: 'LOAN',
+      entityId: currentLoan.id,
+      entityName: currentLoan.item_name,
+      details: `Menyerahkan fisik barang: "${currentLoan.item_name}" (${currentLoan.asset_code}) kepada ${currentLoan.borrower_name}`,
+      ipAddress: req.ip,
     });
 
     return res.status(200).json(formatted);

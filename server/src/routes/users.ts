@@ -7,6 +7,7 @@ import {
   updateUserSchema,
   updateUserStatusSchema,
 } from '../validators.js';
+import { logAudit } from '../utils/auditLogger.js';
 
 export const usersRouter = Router();
 
@@ -167,6 +168,19 @@ usersRouter.post('/', async (req: Request, res: Response) => {
     ]);
 
     const createdUser = formatUserResponse(result.rows[0]);
+
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'TAMBAH_PENGGUNA',
+      entityType: 'USER',
+      entityId: newId,
+      entityName: fullName,
+      details: `Menambahkan akun pengguna baru: ${fullName} (${email}) dengan peran ${role}`,
+      ipAddress: req.ip,
+    });
+
     return res.status(201).json({
       success: true,
       message: 'Akun pengguna berhasil ditambahkan.',
@@ -325,6 +339,18 @@ usersRouter.patch('/:id', async (req: Request, res: Response) => {
     const result = await pool.query(updateQuery, params);
     const updatedUser = formatUserResponse(result.rows[0]);
 
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'UBAH_PENGGUNA',
+      entityType: 'USER',
+      entityId: targetId,
+      entityName: updatedUser.fullName,
+      details: `Memperbarui akun pengguna: ${updatedUser.fullName} (${updatedUser.email})`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Data pengguna berhasil diperbarui.',
@@ -421,6 +447,18 @@ usersRouter.patch('/:id/status', async (req: Request, res: Response) => {
     `;
     const result = await pool.query(updateQuery, [isActive, targetId]);
     const updatedUser = formatUserResponse(result.rows[0]);
+
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: isActive ? 'AKTIFKAN_PENGGUNA' : 'NONAKTIFKAN_PENGGUNA',
+      entityType: 'USER',
+      entityId: targetId,
+      entityName: updatedUser.fullName,
+      details: `${isActive ? 'Mengaktifkan kembali' : 'Menonaktifkan'} akun pengguna: ${updatedUser.fullName} (${updatedUser.email})`,
+      ipAddress: req.ip,
+    });
 
     return res.status(200).json({
       success: true,

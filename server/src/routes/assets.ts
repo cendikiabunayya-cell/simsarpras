@@ -4,6 +4,7 @@ import { tokenParamSchema, assetCreateSchema, assetUpdateSchema } from '../valid
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rateLimiter.js';
 import { sseManager } from '../realtime/sseManager.js';
+import { logAudit } from '../utils/auditLogger.js';
 
 export const assetsRouter = Router();
 
@@ -512,6 +513,19 @@ assetsRouter.post('/', requireAuth, requireRole('ADMIN_SARPRAS'), async (req: Re
       status: data.operationalStatus || 'AVAILABLE',
     });
 
+    // Catat audit log penambahan barang
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'TAMBAH_BARANG',
+      entityType: 'ASSET',
+      entityId: id,
+      entityName: data.itemName,
+      details: `Menambahkan barang baru: "${data.itemName}" (${assetCode}) pada lokasi ${locationName}`,
+      ipAddress: req.ip,
+    });
+
     return res.status(201).json(formatAssetResponse(createdRow));
   } catch (error: any) {
     console.error('[Asset Creation Error]:', error?.message || error);
@@ -682,6 +696,19 @@ assetsRouter.patch('/:id', requireAuth, requireRole('ADMIN_SARPRAS'), async (req
         status: formatted.operationalStatus,
       });
     }
+
+    // Catat audit log pembaruan data barang
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'UBAH_BARANG',
+      entityType: 'ASSET',
+      entityId: formatted.id,
+      entityName: formatted.itemName,
+      details: `Memperbarui data barang: "${formatted.itemName}" (${formatted.assetCode})${data.itemNumber ? ` [No: ${data.itemNumber}]` : ''}${data.locationId ? ` ke lokasi ${formatted.locationName}` : ''}`,
+      ipAddress: req.ip,
+    });
 
     return res.status(200).json(formatted);
   } catch (error: any) {

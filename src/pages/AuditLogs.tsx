@@ -14,6 +14,26 @@ export const AuditLogs: React.FC = () => {
     queryFn: () => api.getAuditLogs(),
   });
 
+  const getActionBadgeClass = (action: string) => {
+    const upper = action.toUpperCase();
+    if (upper.startsWith('TAMBAH') || upper.includes('CREATE') || upper === 'PINJAM_LANGSUNG' || upper === 'AKTIFKAN_PENGGUNA') {
+      return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+    }
+    if (upper.startsWith('UBAH') || upper.includes('UPDATE')) {
+      return 'bg-blue-50 text-blue-800 border-blue-200';
+    }
+    if (upper.startsWith('SETUJUI') || upper.includes('APPROVE') || upper.startsWith('SERAH') || upper.includes('VERIFIKASI')) {
+      return 'bg-indigo-50 text-indigo-800 border-indigo-200';
+    }
+    if (upper.startsWith('HAPUS') || upper.startsWith('TOLAK') || upper.includes('NONAKTIF') || upper.includes('DELETE') || upper.includes('REJECT') || upper.includes('ARSIP')) {
+      return 'bg-rose-50 text-rose-800 border-rose-200';
+    }
+    if (upper.includes('BACKUP')) {
+      return 'bg-amber-50 text-amber-800 border-amber-200';
+    }
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+  };
+
   const filteredLogs = logs?.filter((log) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -75,7 +95,7 @@ export const AuditLogs: React.FC = () => {
                         <span className="text-[10px] text-slate-400">{log.userRole}</span>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${getActionBadgeClass(log.action)}`}>
                           {log.action}
                         </span>
                       </td>

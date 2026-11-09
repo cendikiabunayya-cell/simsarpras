@@ -90,6 +90,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
           ['loan-requests'],
           ['dashboard-metrics'],
           ['assets'], // Ketersediaan aset ikut berubah saat disetujui
+          ['audit-logs'],
         ]);
         break;
 
@@ -99,6 +100,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
           ['loan-requests'],
           ['dashboard-metrics'],
           ['assets'], // Status ketersediaan aset pulih kembali
+          ['audit-logs'],
         ]);
         break;
 
@@ -106,6 +108,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
         scheduleDebouncedInvalidation([
           ['assets'],
           ['dashboard-metrics'],
+          ['audit-logs'],
         ]);
         break;
 
@@ -114,6 +117,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
           ['assets'],
           ['loans'],
           ['dashboard-metrics'],
+          ['audit-logs'],
         ]);
         break;
 

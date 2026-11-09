@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { pool } from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { categorySchema, updateCategorySchema } from '../validators.js';
+import { logAudit } from '../utils/auditLogger.js';
 
 export const categoriesRouter = Router();
 
@@ -105,6 +106,18 @@ categoriesRouter.post('/', requireAuth, requireRole('ADMIN_SARPRAS'), async (req
       isActive ?? true,
     ]);
 
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'TAMBAH_KATEGORI',
+      entityType: 'CATEGORY',
+      entityId: newId,
+      entityName: name,
+      details: `Menambahkan kategori baru: "${name}" (Mode: ${defaultLoanMode || 'DIRECT'})`,
+      ipAddress: req.ip,
+    });
+
     return res.status(201).json(formatCategory(result.rows[0]));
   } catch (error: any) {
     console.error('[Category Creation Error]:', error?.message || error);
@@ -207,6 +220,18 @@ categoriesRouter.patch('/:id', requireAuth, requireRole('ADMIN_SARPRAS'), async 
       ]);
     }
 
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'UBAH_KATEGORI',
+      entityType: 'CATEGORY',
+      entityId: targetId,
+      entityName: data.name || current.name,
+      details: `Memperbarui data kategori: "${data.name || current.name}"`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json(formatCategory(result.rows[0]));
   } catch (error: any) {
     console.error('[Category Update Error]:', error?.message || error);
@@ -254,6 +279,19 @@ categoriesRouter.delete('/:id', requireAuth, requireRole('ADMIN_SARPRAS'), async
     }
 
     await pool.query('DELETE FROM categories WHERE id = $1', [targetId]);
+
+    await logAudit({
+      userId: req.user?.id,
+      userName: req.user?.fullName || req.user?.email || 'Admin Sarpras',
+      userRole: req.user?.role || 'ADMIN_SARPRAS',
+      action: 'HAPUS_KATEGORI',
+      entityType: 'CATEGORY',
+      entityId: targetId,
+      entityName: existing.rows[0].name,
+      details: `Menghapus kategori: "${existing.rows[0].name}"`,
+      ipAddress: req.ip,
+    });
+
     return res.status(200).json({
       success: true,
       message: `Kategori "${existing.rows[0].name}" berhasil dihapus.`,

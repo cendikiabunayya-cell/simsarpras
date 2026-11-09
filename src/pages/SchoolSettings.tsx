@@ -88,6 +88,7 @@ export const SchoolSettings: React.FC = () => {
     onSuccess: (updated) => {
       queryClient.setQueryData(['school-settings'], updated);
       queryClient.invalidateQueries({ queryKey: ['school-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
       setSuccessMsg('Pengaturan identitas sekolah berhasil disimpan.');
       setErrorMsg(null);
       setTimeout(() => setSuccessMsg(null), 4000);
