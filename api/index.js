@@ -3012,11 +3012,11 @@ var __dirname2 = path2.dirname(__filename2);
 var SETTINGS_DIR = path2.resolve(__dirname2, "../../data");
 var SETTINGS_FILE = path2.resolve(SETTINGS_DIR, "school_settings.json");
 var DEFAULT_SETTINGS = {
-  schoolName: "MIS Cendikia Bunayya",
-  address: "Jl. Pendidikan No. 123, Medan, Sumatera Utara",
+  schoolName: "Madrasah Ibtidaiyah Swasta Cendikia Bunayya",
+  address: "Jalan Terus Jaya No. 2 Kec. Kabanjahe Kab. Karo Sumut",
   phone: "081234567890",
   email: "sarpras@cendikiabunayya.sch.id",
-  logoUrl: ""
+  logoUrl: "/logo-cendikia.png"
 };
 async function loadSettings() {
   if (pool) {

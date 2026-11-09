@@ -3,11 +3,11 @@ import { api } from '../services/api';
 import { SchoolSettings } from '../types';
 
 export const DEFAULT_SCHOOL_SETTINGS: SchoolSettings = {
-  schoolName: 'MIS Cendikia Bunayya',
-  address: 'Jl. Pendidikan No. 123, Medan, Sumatera Utara',
+  schoolName: 'Madrasah Ibtidaiyah Swasta Cendikia Bunayya',
+  address: 'Jalan Terus Jaya No. 2 Kec. Kabanjahe Kab. Karo Sumut',
   phone: '081234567890',
   email: 'sarpras@cendikiabunayya.sch.id',
-  logoUrl: '',
+  logoUrl: '/logo-cendikia.png',
 };
 
 /**

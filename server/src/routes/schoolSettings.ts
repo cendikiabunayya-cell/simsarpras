@@ -24,11 +24,11 @@ export interface SchoolSettingsData {
 }
 
 const DEFAULT_SETTINGS: SchoolSettingsData = {
-  schoolName: 'MIS Cendikia Bunayya',
-  address: 'Jl. Pendidikan No. 123, Medan, Sumatera Utara',
+  schoolName: 'Madrasah Ibtidaiyah Swasta Cendikia Bunayya',
+  address: 'Jalan Terus Jaya No. 2 Kec. Kabanjahe Kab. Karo Sumut',
   phone: '081234567890',
   email: 'sarpras@cendikiabunayya.sch.id',
-  logoUrl: '',
+  logoUrl: '/logo-cendikia.png',
 };
 
 /**

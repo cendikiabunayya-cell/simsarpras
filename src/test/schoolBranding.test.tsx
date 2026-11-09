@@ -65,7 +65,8 @@ describe('Verifikasi Dinamisasi Branding dan Identitas Sekolah (Peniadaan Hardco
     expect(screen.queryByText(/DINAS PENDIDIKAN — SMK NEGERI 1 TELADAN/i)).toBeNull();
     expect(screen.queryByText(/info@smkn1teladan\.sch\.id/i)).toBeNull();
     expect(screen.queryByText(/Kepala SMKN 1 Teladan Jakarta/i)).toBeNull();
-    expect(screen.getByText(/KOP SURAT RESMI LEMBAGA PENDIDIKAN/i)).toBeInTheDocument();
+    expect(screen.getByText(/YAYASAN PENDIDIKAN CENDIKIA BUNAYYA/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/MADRASAH IBTIDAIYAH SWASTA CENDIKIA BUNAYYA/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('PublicScanLoan: Menampilkan identitas sekolah dinamis', () => {

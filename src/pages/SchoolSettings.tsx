@@ -273,31 +273,38 @@ export const SchoolSettings: React.FC = () => {
               <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-xl space-y-3">
                 <div className="flex items-center gap-3">
                   {/* Logo Container */}
-                  <div className="w-14 h-14 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
-                    {logoUrl && !logoPreviewFailed ? (
+                  <div className="w-14 h-14 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                    {logoPreviewFailed ? (
+                      <Building className="w-7 h-7 text-slate-400" />
+                    ) : (
                       <img
-                        src={logoUrl}
+                        src={logoUrl || '/logo-cendikia.png'}
                         alt="Logo Sekolah"
                         className="w-full h-full object-contain p-1"
-                        onError={() => setLogoPreviewFailed(true)}
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.src.endsWith('/logo-cendikia.png')) {
+                            target.src = '/logo-cendikia.png';
+                          } else {
+                            setLogoPreviewFailed(true);
+                          }
+                        }}
                       />
-                    ) : (
-                      <Building className="w-7 h-7 text-slate-400" />
                     )}
                   </div>
 
                   {/* School Name & Meta */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-slate-900 text-sm leading-tight truncate">
-                      {schoolName || 'Nama Sekolah Belum Diatur'}
+                  <div className="flex-1 min-w-0 font-serif">
+                    <h4 className="font-extrabold text-slate-900 text-xs uppercase leading-tight truncate">
+                      YAYASAN PENDIDIKAN CENDIKIA BUNAYYA
+                    </h4>
+                    <h3 className="font-bold text-slate-800 text-xs uppercase leading-tight truncate mt-0.5">
+                      {schoolName || 'Madrasah Ibtidaiyah Swasta Cendikia Bunayya'}
                     </h3>
-                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                      SISTEM INFORMASI MANAJEMEN SARPRAS
-                    </p>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600">
+                <div className="pt-2 border-b-2 border-double border-slate-800 pb-2 space-y-1 text-xs text-slate-600 font-serif">
                   <div className="flex items-start gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
                     <span className="text-[11px] leading-relaxed">

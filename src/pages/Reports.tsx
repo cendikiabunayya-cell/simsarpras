@@ -25,7 +25,7 @@ export const Reports: React.FC = () => {
   const [reportType, setReportType] = useState<'inventory' | 'loans' | 'returns' | 'maintenance'>('inventory');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const { schoolName, address, phone, email, logoUrl } = useSchoolSettings();
+  const { schoolName, address, logoUrl } = useSchoolSettings();
 
   const { data: assets, isLoading: isAssetsLoading } = useQuery({
     queryKey: ['assets'],
@@ -218,31 +218,32 @@ export const Reports: React.FC = () => {
       {/* OFFICIAL REPORT CONTAINER (PRINTABLE) */}
       <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm print:border-none print:shadow-none print:p-0">
         {/* Official School Header Kop Surat */}
-        <div className="border-b-2 border-slate-900 pb-4 mb-6">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={schoolName}
-                className="w-16 h-16 object-contain shrink-0"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : null}
-            <div className="text-center">
-              <h2 className="text-xs sm:text-sm font-bold tracking-widest text-slate-600 uppercase">
-                KOP SURAT RESMI LEMBAGA PENDIDIKAN
-              </h2>
-              <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 uppercase tracking-tight mt-0.5">
-                {schoolName}
+        <div className="border-b-4 border-double border-slate-900 pb-4 mb-6">
+          <div className="flex items-center justify-center gap-5 sm:gap-8 mb-3">
+            <img
+              src={logoUrl || '/logo-cendikia.png'}
+              alt="Logo Cendikia Bunayya"
+              className="w-20 h-20 sm:w-24 sm:h-24 object-contain shrink-0"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.endsWith('/logo-cendikia.png')) {
+                  target.src = '/logo-cendikia.png';
+                }
+              }}
+            />
+            <div className="text-center font-serif">
+              <h1 className="text-lg sm:text-2xl font-black text-slate-900 uppercase tracking-wide leading-tight">
+                YAYASAN PENDIDIKAN CENDIKIA BUNAYYA
               </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {address} • Telp: {phone} • Email: {email}
+              <h2 className="text-base sm:text-xl font-bold text-slate-900 uppercase tracking-normal mt-1 leading-tight">
+                MADRASAH IBTIDAIYAH SWASTA CENDIKIA BUNAYYA
+              </h2>
+              <p className="text-xs sm:text-sm font-semibold text-slate-800 uppercase tracking-wider mt-1.5 leading-snug">
+                {address || 'JALAN TERUS JAYA NO. 2 KEC. KABANJAHE KAB. KARO SUMUT'}
               </p>
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-200">
+          <div className="mt-3 pt-2.5 border-t border-slate-300 text-center">
             <h3 className="text-sm font-bold uppercase text-slate-900 tracking-wide">
               {reportType === 'inventory' && 'REKAPITULASI BUKU INDUK INVENTARIS SARANA DAN PRASARANA'}
               {reportType === 'loans' && 'LAPORAN REKAPITULASI TRANSAKSI PEMINJAMAN SARANA DAN PRASARANA'}
@@ -350,7 +351,7 @@ export const Reports: React.FC = () => {
           </div>
 
           <div>
-            <p className="text-slate-500">Jakarta, {formatDateOnly(new Date().toISOString())}</p>
+            <p className="text-slate-500">Kabanjahe, {formatDateOnly(new Date().toISOString())}</p>
             <p className="font-bold text-slate-900 mt-0.5">Pengelola Sarana & Prasarana</p>
             <div className="h-20" /> {/* Space for signature */}
             <p className="font-bold text-slate-900 underline">Bambang Hermawan, S.Kom.</p>
