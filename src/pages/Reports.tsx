@@ -236,10 +236,10 @@ export const Reports: React.FC = () => {
                 YAYASAN PENDIDIKAN CENDIKIA BUNAYYA
               </h1>
               <h2 className="text-base sm:text-xl font-bold text-slate-900 uppercase tracking-normal mt-1 leading-tight">
-                MADRASAH IBTIDAIYAH SWASTA CENDIKIA BUNAYYA
+                {schoolName ? schoolName.toUpperCase() : 'MADRASAH IBTIDAIYAH SWASTA CENDIKIA BUNAYYA'}
               </h2>
               <p className="text-xs sm:text-sm font-semibold text-slate-800 uppercase tracking-wider mt-1.5 leading-snug">
-                {address || 'JALAN TERUS JAYA NO. 2 KEC. KABANJAHE KAB. KARO SUMUT'}
+                {address ? address.toUpperCase() : 'JALAN TERUS JAYA NO. 2 KEC. KABANJAHE KAB. KARO SUMUT'}
               </p>
             </div>
           </div>
