@@ -44,6 +44,37 @@ import {
   getOperationalBadge,
 } from '../lib/utils';
 
+/**
+ * Helper format label kategori + nomor barang (misal: "No: 22" -> "Laptop 22")
+ */
+export function getCategoryAndItemNumber(item: {
+  itemNumber?: string | null;
+  categoryName?: string;
+  itemName?: string;
+}): string {
+  const num = (item.itemNumber && String(item.itemNumber).trim()) || '';
+  if (!num) return '';
+
+  // Jika sudah memuat huruf/nama kategori (misal: "Laptop 22"), langsung gunakan
+  if (/[a-zA-Z]/.test(num)) {
+    return num;
+  }
+
+  // Tentukan label kategori atau deteksi dari nama barang
+  let cat = (item.categoryName || '').trim();
+  const itemLower = (item.itemName || '').toLowerCase();
+
+  if (!cat || cat.includes('/') || cat.toLowerCase() === 'umum') {
+    if (itemLower.includes('laptop')) cat = 'Laptop';
+    else if (itemLower.includes('proyektor') || itemLower.includes('projector') || itemLower.includes('infocus')) cat = 'Infocus';
+    else if (itemLower.includes('kamera') || itemLower.includes('camera')) cat = 'Kamera';
+    else if (itemLower.includes('komputer') || itemLower.includes('pc')) cat = 'PC';
+    else if (itemLower.includes('speaker') || itemLower.includes('sound')) cat = 'Speaker';
+  }
+
+  return cat ? `${cat} ${num}` : `No: ${num}`;
+}
+
 export const Inventory: React.FC = () => {
   const queryClient = useQueryClient();
   const { canManageAssets, currentUser, allUsers } = useAuth();
@@ -809,7 +840,7 @@ export const Inventory: React.FC = () => {
                               </div>
                               {asset.itemNumber && (
                                 <span className="inline-block font-sans text-[10px] font-bold text-blue-800 bg-blue-100/70 px-1.5 py-0.2 rounded border border-blue-200">
-                                  No: {asset.itemNumber}
+                                  {getCategoryAndItemNumber(asset)}
                                 </span>
                               )}
                               <div>
@@ -1107,7 +1138,7 @@ export const Inventory: React.FC = () => {
               {selectedAsset.itemNumber && (
                 <div className="p-3 rounded-lg border border-blue-200 bg-blue-50/70">
                   <span className="text-blue-700 font-semibold block mb-1">Nomor Barang</span>
-                  <span className="font-bold text-blue-950">{selectedAsset.itemNumber}</span>
+                  <span className="font-bold text-blue-950">{getCategoryAndItemNumber(selectedAsset)}</span>
                 </div>
               )}
               <div className="p-3 rounded-lg border border-blue-200 bg-blue-50/50">
